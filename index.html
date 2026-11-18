@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Портфолио Анны Соловьевой: ретушь, визуальный дизайн, 3D и AI-генерация изображений."
+    />
+    <meta name="theme-color" content="#f4f1ec" />
+    <title>Анна Соловьева — визуальный автор</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="wrap top">
+      <a class="brand" href="#top">АННА СОЛОВЬЕВА</a>
+      <nav class="nav">
+        <a href="#works">Работы</a><a href="#skills">Навыки</a
+        ><a href="#about">Обо мне</a><a href="#contact">Контакты ↗</a>
+      </nav>
+    </header>
+    <main id="top">
+      <section class="wrap hero">
+        <div>
+          <div class="eyebrow">Визуальный автор · портфолио</div>
+          <h1>Создаю<br /><span>визуальный</span><br />образ.</h1>
+          <p class="intro">
+            Ретушь, 3D и цифровые изображения — с вниманием к деталям,
+            материалам и настроению.
+          </p>
+        </div>
+        <div class="hero-aside">
+          <p>
+            От аккуратной предметной ретуши до выразительных визуальных
+            концепций и 3D-сцен.
+          </p>
+          <a class="pill" href="#works">Смотреть проекты ↓</a>
+        </div>
+      </section>
+      <section class="wrap section" id="works">
+        <div class="section-head">
+          <h2>Избранные работы</h2>
+          <p>Подборка по четырём направлениям</p>
+        </div>
+        <div class="filters">
+          <button class="filter active" data-filter="all">Все работы</button
+          ><button class="filter" data-filter="retouch">Ретушь</button
+          ><button class="filter" data-filter="design">Дизайн</button
+          ><button class="filter" data-filter="3d">3D</button
+          ><button class="filter" data-filter="ai">AI-изображения</button>
+        </div>
+        <div class="grid" id="gallery"></div>
+      </section>
+      <section class="skills" id="skills">
+        <div class="wrap">
+          <div class="skills-title">
+            <h2>Инструменты<br />и навыки</h2>
+            <p>
+              Сильная сторона — точная работа с изображением. Беру задачу от
+              исходника до готового визуала.
+            </p>
+          </div>
+          <div class="skill-grid">
+            <article class="skill">
+              <h3>Ретушь <span class="level">Профессионально</span></h3>
+              <p>
+                Предметная, интерьерная и портретная ретушь в Adobe Photoshop.
+                Цветокоррекция, деликатная работа с кожей, коррекция деталей,
+                одежды и формы. Перекраска изделий и подготовка изображений для
+                каталогов, сайтов, маркетплейсов и рекламы.
+              </p>
+            </article>
+            <article class="skill">
+              <h3>3D / Cinema 4D <span class="level">Базовый уровень</span></h3>
+              <p>
+                Простые и средней сложности модели, UV-развёртка, PBR-материалы
+                и рендеринг в Corona.
+              </p>
+            </article>
+            <article class="skill">
+              <h3>
+                Графический дизайн <span class="level">Рабочий уровень</span>
+              </h3>
+              <p>
+                Макеты и карточки товаров для маркетплейсов. Уверенное владение
+                CorelDRAW; подготовка векторных файлов для плоттерной резки,
+                лазерной резки и фрезеровки.
+              </p>
+            </article>
+            <article class="skill">
+              <h3>
+                AI-генерация <span class="level">Визуальные концепции</span>
+              </h3>
+              <p>
+                Создание и доработка изображений с помощью генеративных
+                инструментов: предметные визуалы, интерьеры, стилизованные сцены
+                и рекламные концепции.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+      <section class="wrap about" id="about">
+        <div>
+          <div class="eyebrow">Обо мне</div>
+          <h2>Визуал<br />с характером.</h2>
+        </div>
+        <div class="about-copy">
+          <p>
+            Я Анна Соловьева. Работаю с изображениями на разных этапах — от
+            аккуратной ретуши и подготовки продукта к каталогу до
+            3D-визуализации и генеративных экспериментов.
+          </p>
+          <p>
+            В каждом проекте важны чистота исполнения, естественный результат и
+            понимание того, где изображение будет использоваться.
+          </p>
+        </div>
+      </section>
+      <section class="contact" id="contact">
+        <div class="wrap contact-inner">
+          <div>
+            <div class="eyebrow">Есть проект?</div>
+            <h2>Давайте<br />обсудим.</h2>
+            <p>Напишите несколько слов о задаче — отвечу по почте.</p>
+          </div>
+          <a class="pill email-text" id="emailLink" href="#"
+            >Показать адрес ↗</a
+          >
+        </div>
+        <div class="wrap footer">
+          <span>© Анна Соловьева</span
+          ><span>Портфолио · Ретушь · 3D · Дизайн · AI</span>
+        </div>
+      </section>
+    </main>
+    <div class="modal" id="modal" aria-modal="true" role="dialog">
+      <button class="close" aria-label="Закрыть">×</button
+      ><button class="prev" aria-label="Предыдущее">‹</button
+      ><img alt="" /><button class="next" aria-label="Следующее">›</button>
+    </div>
+    <script>
+      const works = [
+        ["retouch", "01.jpg"],
+        ["retouch", "02.jpg"],
+        ["retouch", "03.jpg"],
+        ["retouch", "04.jpg"],
+        ["design", "01.jpg"],
+        ["design", "02.jpg"],
+        ["design", "03.jpg"],
+        ["design", "04.jpg"],
+        ["3d", "01.jpg"],
+        ["3d", "02.jpg"],
+        ["3d", "03.jpg"],
+        ["3d", "04.jpg"],
+        ["ai", "01.jpg"],
+        ["ai", "02.jpg"],
+        ["ai", "03.jpg"],
+        ["ai", "04.jpg"],
+      ];
+      const grid = document.querySelector("#gallery");
+      let visible = [];
+      function draw(filter = "all") {
+        grid.innerHTML = "";
+        visible = works.filter((w) => filter === "all" || w[0] === filter);
+        visible.forEach((w, i) => {
+          let el = document.createElement("article");
+          el.className = "item";
+          el.innerHTML = `<div class="photo"><img loading="lazy" src="assets/yandex-previews/${w[0]}/${w[1]}" alt="Изображение из превью Яндекс Диска"></div>`;
+          el.onclick = () => openModal(i);
+          grid.append(el);
+        });
+      }
+      document.querySelectorAll(".filter").forEach(
+        (b) =>
+          (b.onclick = () => {
+            document.querySelector(".filter.active").classList.remove("active");
+            b.classList.add("active");
+            draw(b.dataset.filter);
+          }),
+      );
+      const modal = document.querySelector("#modal"),
+        mimg = modal.querySelector("img");
+      let current = 0;
+      function openModal(i) {
+        current = i;
+        showModal();
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function showModal() {
+        const w = visible[current];
+        mimg.src = `assets/yandex-previews/${w[0]}/${w[1]}`;
+        mimg.alt = "Работа в портфолио";
+      }
+      function step(n) {
+        current = (current + n + visible.length) % visible.length;
+        showModal();
+      }
+      modal.querySelector(".close").onclick = () => {
+        modal.classList.remove("open");
+        document.body.style.overflow = "";
+      };
+      modal.querySelector(".prev").onclick = () => step(-1);
+      modal.querySelector(".next").onclick = () => step(1);
+      modal.onclick = (e) => {
+        if (e.target === modal) modal.querySelector(".close").click();
+      };
+      document.addEventListener("keydown", (e) => {
+        if (!modal.classList.contains("open")) return;
+        if (e.key === "Escape") modal.querySelector(".close").click();
+        if (e.key === "ArrowRight") step(1);
+        if (e.key === "ArrowLeft") step(-1);
+      });
+      draw();
+      const mail = ["solovann83", "yandex.ru"].join("@");
+      document.querySelector("#emailLink").onclick = (e) => {
+        e.preventDefault();
+        const a = e.currentTarget;
+        a.href = "mailto:" + mail;
+        a.textContent = mail + " ↗";
+        window.location.href = a.href;
+      };
+    </script>
+  </body>
+</html>
