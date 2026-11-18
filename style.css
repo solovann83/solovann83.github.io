@@ -457,3 +457,120 @@ a {
     padding-left: 0;
   }
 }
+
+/* Mobile navigation */
+.menu-toggle {
+  display: none;
+}
+@media (max-width: 760px) {
+  .top {
+    position: relative;
+    z-index: 5;
+  }
+  .menu-toggle {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    padding: 11px 9px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+  }
+  .menu-toggle span {
+    display: block;
+    width: 18px;
+    height: 1.5px;
+    background: currentColor;
+    transition:
+      transform 0.2s ease,
+      opacity 0.2s ease;
+  }
+  .menu-toggle.is-open span:first-child {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+  .menu-toggle.is-open span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.is-open span:last-child {
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+  .nav {
+    display: none;
+    position: absolute;
+    top: calc(100% - 1px);
+    right: 0;
+    min-width: 210px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    box-shadow: 0 16px 32px rgba(36, 35, 31, 0.12);
+    flex-direction: column;
+    gap: 0;
+  }
+  .nav.is-open {
+    display: flex;
+  }
+  .nav a {
+    display: block;
+    padding: 13px 12px;
+    font-size: 13px;
+  }
+  .nav a:first-child {
+    display: block;
+  }
+}
+
+/* Scroll-to-top control */
+.to-top {
+  position: fixed;
+  z-index: 8;
+  right: 26px;
+  bottom: 26px;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(244, 241, 236, 0.55);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--bg);
+  font:
+    24px/1 Arial,
+    sans-serif;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0.2s ease,
+    background 0.2s ease;
+}
+.to-top.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.to-top:hover {
+  background: var(--accent);
+}
+@media (max-width: 760px) {
+  .to-top {
+    right: 18px;
+    bottom: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .to-top,
+  .menu-toggle span {
+    transition: none;
+  }
+}
