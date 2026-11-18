@@ -40,9 +40,10 @@ a {
   letter-spacing: 0.03em;
 }
 .wall {
-  background: url(assets/img/wall.jpg) no-repeat;
+  background: url(assets/img/wall.png) no-repeat;
   background-size: contain;
-	padding: 0;
+  background-position: right
+  padding: 0;
 }
 .nav {
   font-family: Montserrat-Regular, Arial, sans-serif;
