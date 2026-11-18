@@ -458,14 +458,22 @@ a {
   }
 }
 
-/* Mobile navigation */
+/* Full-screen mobile navigation */
 .menu-toggle {
+  display: none;
+}
+.mobile-nav-head,
+.mobile-nav-foot {
   display: none;
 }
 @media (max-width: 760px) {
   .top {
     position: relative;
     z-index: 5;
+  }
+  .top.menu-open {
+    z-index: 20;
+    border-bottom-color: transparent;
   }
   .menu-toggle {
     display: inline-flex;
@@ -503,27 +511,70 @@ a {
   }
   .nav {
     display: none;
-    position: absolute;
-    top: calc(100% - 1px);
-    right: 0;
-    min-width: 210px;
-    padding: 10px;
-    border: 1px solid var(--line);
+    position: fixed;
+    inset: 0;
+    z-index: 21;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: max(22px, env(safe-area-inset-top)) 28px
+      max(28px, env(safe-area-inset-bottom));
+    border: 0;
     background: var(--bg);
-    box-shadow: 0 16px 32px rgba(36, 35, 31, 0.12);
+    box-shadow: none;
     flex-direction: column;
-    gap: 0;
+    justify-content: flex-start;
+    gap: clamp(8px, 2.5vh, 24px);
+    overflow-y: auto;
   }
   .nav.is-open {
     display: flex;
   }
-  .nav a {
-    display: block;
-    padding: 13px 12px;
-    font-size: 13px;
+  .mobile-nav-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 50px;
+    margin-bottom: clamp(28px, 8vh, 70px);
   }
+  .mobile-nav-label {
+    font-family: Montserrat, Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+  }
+  .nav-close {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    font:
+      30px/1 Arial,
+      sans-serif;
+    cursor: pointer;
+  }
+  .nav a,
   .nav a:first-child {
     display: block;
+    width: 100%;
+    padding: 12px 0 16px;
+    border-bottom: 1px solid var(--line);
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(38px, 10vw, 58px);
+    line-height: 1;
+    color: var(--ink);
+  }
+  .mobile-nav-foot {
+    display: block;
+    margin-top: auto;
+    padding-top: 34px;
+    font-family: Montserrat, Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
   }
 }
 
