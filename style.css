@@ -42,7 +42,7 @@ a {
 .wall {
   background: url(assets/img/wall.png) no-repeat;
   background-size: contain;
-  background-position: right
+  background-position: right;
   padding: 0;
 }
 .nav {
