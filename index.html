@@ -23,9 +23,16 @@
       >
         <span></span><span></span><span></span>
       </button>
-      <nav class="nav" id="site-nav">
+      <nav class="nav" id="site-nav" aria-label="Основная навигация">
+        <div class="mobile-nav-head">
+          <span class="mobile-nav-label">НАВИГАЦИЯ</span>
+          <button class="nav-close" type="button" aria-label="Закрыть меню">
+            ×
+          </button>
+        </div>
         <a href="#works">Работы</a><a href="#skills">Навыки</a
         ><a href="#about">Обо мне</a><a href="#contact">Контакты ↗</a>
+        <div class="mobile-nav-foot">АННА СОЛОВЬЕВА · ПОРТФОЛИО</div>
       </nav>
     </header>
     <main id="top">
@@ -236,17 +243,23 @@
         menuButton.setAttribute("aria-expanded", "false");
         menuButton.setAttribute("aria-label", "Открыть меню");
         siteNav.classList.remove("is-open");
+        document.querySelector(".top").classList.remove("menu-open");
+        document.body.style.overflow = "";
       }
       menuButton.onclick = () => {
         const isOpen = menuButton.getAttribute("aria-expanded") === "true";
         menuButton.classList.toggle("is-open", !isOpen);
         siteNav.classList.toggle("is-open", !isOpen);
+        document.querySelector(".top").classList.toggle("menu-open", !isOpen);
+        document.body.style.overflow = isOpen ? "" : "hidden";
         menuButton.setAttribute("aria-expanded", String(!isOpen));
         menuButton.setAttribute(
           "aria-label",
           isOpen ? "Открыть меню" : "Закрыть меню",
         );
+        if (!isOpen) siteNav.querySelector("a").focus();
       };
+      siteNav.querySelector(".nav-close").onclick = closeMenu;
       siteNav
         .querySelectorAll("a")
         .forEach((link) => (link.onclick = closeMenu));
