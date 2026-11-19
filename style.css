@@ -56,20 +56,31 @@ a {
 .footer a:hover {
   color: var(--accent);
 }
+.brand-line {
+  display: flex;
+  align-items: center;
+  gap: 58px;
+}
+
+.header-kicker {
+  font-family: Montserrat-Regular, Arial, sans-serif;
+  color: var(--accent);
+  font-size: 13px;
+  letter-spacing: 0.18em;
+}
 .hero {
-  padding: 110px 0 72px;
+  padding: 75px 0 70px;
   display: grid;
   grid-template-columns: 1.25fr 0.75fr;
   gap: 8vw;
   align-items: end;
 }
-.eyebrow {
-  font-family: Montserrat-Regular, Arial, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 11px;
-  color: var(--accent);
-  font-weight: 700;
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  width: 55%;
+  max-width: 620px;
+  margin-left: clamp(0px, 5.7vw, 88px);
 }
 .hero h1 {
   font-size: clamp(54px, 8.4vw, 112px);
@@ -88,7 +99,8 @@ a {
   font-size: 16px;
   line-height: 1.65;
   color: #625e58;
-  max-width: 470px;
+  max-width: 430px;
+  margin-bottom: 24px;
 }
 .hero-aside {
   padding-bottom: 5px;
