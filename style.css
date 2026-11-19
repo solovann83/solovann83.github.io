@@ -41,7 +41,7 @@ a {
 }
 .wall {
   background: url(assets/img/wall4.png) no-repeat;
-  background-size: contain;
+  background-size: 54% auto;
   background-position: right;
   padding: 0;
 }
