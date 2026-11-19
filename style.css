@@ -78,7 +78,7 @@ a {
 .hero-copy {
   position: relative;
   z-index: 1;
-  width: 55%;
+  width: 65%;
   max-width: 620px;
   margin-left: clamp(0px, 5.7vw, 88px);
 }
