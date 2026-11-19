@@ -365,6 +365,41 @@ a {
 .email-text {
   user-select: none;
 }
+/* Scroll-to-top control */
+  .to-top {
+    position: fixed;
+    z-index: 8;
+    right: 18px;
+    bottom: 18px;
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(244, 241, 236, 0.55);
+    border-radius: 50%;
+    background: var(--ink);
+    color: var(--bg);
+    font:
+      24px/1 Arial,
+      sans-serif;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      visibility 0.2s ease,
+      background 0.2s ease;
+  }
+  .to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .to-top:hover {
+    background: var(--accent);
+  }
 @media (max-width: 760px) {
   .wrap {
     width: calc(100% - 36px);
@@ -572,39 +607,9 @@ a {
   }
   /* Scroll-to-top control */
   .to-top {
-    position: fixed;
-    z-index: 8;
     right: 18px;
     bottom: 18px;
-    width: 46px;
-    height: 46px;
-    border: 1px solid rgba(244, 241, 236, 0.55);
-    border-radius: 50%;
-    background: var(--ink);
-    color: var(--bg);
-    font:
-      24px/1 Arial,
-      sans-serif;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(8px);
-    transition:
-      opacity 0.2s ease,
-      transform 0.2s ease,
-      visibility 0.2s ease,
-      background 0.2s ease;
-  }
-  .to-top.is-visible {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-  .to-top:hover {
-    background: var(--accent);
-  }
+  }  
 }
 @media (max-width: 430px) {
   .hero-aside {
