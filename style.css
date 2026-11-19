@@ -370,8 +370,13 @@ a {
   .nav a:first-child {
     display: none;
   }
+  .wall {
+    background-size: 90% auto;
+    background-position: right bottom;
+  }
   .hero {
     padding: 75px 0 48px;
+    padding-bottom: clamp(190px, 55vw, 230px);
     grid-template-columns: 1fr;
     gap: 22px;
   }
