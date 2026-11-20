@@ -181,30 +181,30 @@ function aspectRatio(work) {
   const id = Number(work.id);
 
   if (work.category === "retouch") {
-    if (id === 11) return 450 / 800;
-    if ([9, 17, 18].includes(id)) return 800 / 600;
-    if ([15, 19, 20].includes(id)) return 800 / 450;
-    return 600 / 800;
+    if (id === 11) return "450 / 800";
+    if ([9, 17, 18].includes(id)) return "800 / 600";
+    if ([15, 19, 20].includes(id)) return "800 / 450";
+    return "600 / 800";
   }
 
   if (work.category === "design") {
-    if ([37, 39, 40].includes(id)) return 800 / 600;
-    if (id === 41) return 800 / 450;
-    return 600 / 800;
+    if ([37, 39, 40].includes(id)) return "800 / 600";
+    if (id === 41) return "800 / 450";
+    return "600 / 800";
   }
 
   if (work.category === "3d") {
-    if ([2, 4].includes(id)) return 800 / 450;
-    return 800 / 600;
+    if ([2, 4].includes(id)) return "800 / 450";
+    return "800 / 600";
   }
 
   if (work.category === "ai") {
-    if ([45, 54, 55].includes(id)) return 600 / 800;
-    if ([47, 48, 49, 52].includes(id)) return 800 / 450;
-    return 800 / 600;
+    if ([45, 54, 55].includes(id)) return "600 / 800";
+    if ([47, 48, 49, 52].includes(id)) return "800 / 450";
+    return "800 / 600";
   }
 
-  return 4 / 3;
+  return "4 / 3";
 }
 
 function columnCount() {
@@ -213,28 +213,33 @@ function columnCount() {
   return 12;
 }
 
+function contentHeight(element) {
+  if (element.classList.contains("gallery-group")) {
+    const photos = [...element.querySelectorAll(".photo")];
+    return Math.max(
+      0,
+      ...photos.map((photo) => photo.getBoundingClientRect().height),
+    );
+  }
+
+  return element.querySelector(".photo")?.getBoundingClientRect().height || 0;
+}
+
 function updateGridSpans() {
   requestAnimationFrame(() => {
     const styles = getComputedStyle(grid);
     const rowUnit =
       parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
     const rowGap = parseFloat(styles.rowGap) || 12;
-    const items = [...grid.children];
 
-    items.forEach((element) => {
-      element.style.gridRowEnd = "span 1";
-    });
-
-    requestAnimationFrame(() => {
-      items.forEach((element) => {
-        const height = element.getBoundingClientRect().height;
-        const span = Math.max(
-          1,
-          Math.ceil((height + rowGap) / (rowUnit + rowGap)),
-        );
-        element.style.gridRowEnd = `span ${span}`;
-      });
-    });
+    for (const element of grid.children) {
+      const height = contentHeight(element);
+      const span = Math.max(
+        1,
+        Math.ceil((height + rowGap) / (rowUnit + rowGap)),
+      );
+      element.style.gridRowEnd = `span ${span}`;
+    }
   });
 }
 
@@ -248,7 +253,7 @@ function makeCard(work, insideGroup = false) {
 
   const photo = document.createElement("div");
   photo.className = "photo";
-  photo.style.setProperty("--image-ratio", String(aspectRatio(work)));
+  photo.style.setProperty("--image-ratio", aspectRatio(work));
 
   const image = document.createElement("img");
   image.loading = "lazy";
@@ -279,12 +284,10 @@ function makeGroup(block) {
 
   const columns = columnCount();
   const groupSpan = Math.min(members.length * 3, columns);
+  const innerColumns = Math.min(members.length, columns / 3);
 
   groupElement.style.setProperty("--group-span", groupSpan);
-  groupElement.style.setProperty(
-    "--group-columns",
-    Math.min(members.length, columns / 3),
-  );
+  groupElement.style.setProperty("--group-columns", innerColumns);
 
   members.forEach((work) => {
     groupElement.append(makeCard(work, true));
