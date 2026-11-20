@@ -5,9 +5,20 @@ const makeWorks = (category, start, end, extension = "jpg") =>
   });
 
 const aiOriginals = [
-  "42.png", "43.jpg", "44.jpg", "45.png", "46.png", "47.png",
-  "48.jpg", "49.png", "50.png", "51.jpg", "52.png", "53.jpg",
-  "54.jpg", "55.png",
+  "42.png",
+  "43.jpg",
+  "44.jpg",
+  "45.png",
+  "46.png",
+  "47.png",
+  "48.jpg",
+  "49.png",
+  "50.png",
+  "51.jpg",
+  "52.png",
+  "53.jpg",
+  "54.jpg",
+  "55.png",
 ];
 
 const works = [
@@ -408,6 +419,19 @@ function applyZoom() {
   setZoomButtonState(zoomScale === 1 ? "native" : "none");
 }
 
+function centerZoomedImage() {
+  if (!imageReady || zoomScale === 0) return;
+
+  modalViewport.scrollLeft = Math.max(
+    0,
+    (modalImage.offsetWidth - modalViewport.clientWidth) / 2,
+  );
+  modalViewport.scrollTop = Math.max(
+    0,
+    (modalImage.offsetHeight - modalViewport.clientHeight) / 2,
+  );
+}
+
 function loadModalImage(src, alt) {
   const requestId = ++imageRequestId;
   imageReady = false;
@@ -437,6 +461,9 @@ function loadModalImage(src, alt) {
     });
 
     applyZoom();
+
+    // При переключении «До / После» сохраняем масштаб и центрируем новый кадр.
+    if (zoomScale > 0) requestAnimationFrame(centerZoomedImage);
   };
 
   modalImage.onload = finishLoad;
@@ -466,7 +493,7 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const contentX = modalViewport.scrollLeft + anchorX;
   const contentY = modalViewport.scrollTop + anchorY;
 
-  /* Максимум — реальные размеры изображения, то есть 100%. */
+  /* Ограничение: не больше натурального размера изображения, максимум 100%. */
   zoomScale = nextScale === 0 ? 0 : Math.min(1, nextScale);
   applyZoom();
 
@@ -479,6 +506,11 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const appliedScale = zoomScale;
 
   requestAnimationFrame(() => {
+    if (clientX === null || clientY === null) {
+      centerZoomedImage();
+      return;
+    }
+
     modalViewport.scrollLeft = Math.max(
       0,
       contentX * (appliedScale / oldScale) - anchorX,
@@ -584,7 +616,7 @@ function draw(filter = "all") {
   updateGridSpans();
 }
 
-/* Кнопки масштаба */
+/* Масштаб кнопками и колесом мыши */
 lightboxToolbar
   .querySelector('[data-zoom="fit"]')
   .addEventListener("click", () => setZoom(0));
@@ -593,7 +625,6 @@ lightboxToolbar
   .querySelector('[data-zoom="native"]')
   .addEventListener("click", () => setZoom(1));
 
-/* Колесо мыши масштабирует изображение на десктопе */
 modalViewport.addEventListener(
   "wheel",
   (event) => {
