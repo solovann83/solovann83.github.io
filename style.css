@@ -211,7 +211,7 @@ a {
   color: white;
 }
 
-/* Плотная мозаика на сетке 12 колонок */
+/* Плотная мозаика */
 .grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -240,7 +240,7 @@ a {
   grid-column: span 3;
 }
 
-/* Работа 15 занимает ширину двух обычных ячеек */
+/* Работа 15 занимает ширину двух обычных карточек */
 .item.featured-work {
   grid-column: span 6;
 }
@@ -417,42 +417,201 @@ a {
   margin-top: 50px;
 }
 
+/* Лайтбокс и прокручиваемая область масштабирования */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(15, 15, 14, 0.94);
   z-index: 10;
   display: none;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   padding: 5vw;
+  background: rgba(15, 15, 14, 0.94);
 }
 
 .modal.open {
   display: flex;
 }
 
-.modal img {
+.modal-viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90vw;
+  height: 85vh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.modal-image {
+  display: block;
+  flex: none;
+  width: auto;
+  height: auto;
   max-width: 90vw;
   max-height: 85vh;
   object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+.modal-image.is-loading {
+  opacity: 0;
+}
+
+.modal.is-zoomed {
+  padding: 0;
+}
+
+.modal.is-zoomed .modal-viewport {
+  width: 100vw;
+  height: 100vh;
+  align-items: flex-start;
+  justify-content: flex-start;
+  max-width: none;
+  max-height: none;
+}
+
+.modal.is-zoomed .modal-image {
+  max-width: none;
+  max-height: none;
+}
+
+/* Кнопки масштаба и сравнения */
+.lightbox-toolbar {
+  position: absolute;
+  z-index: 13;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border: 1px solid rgba(244, 241, 236, 0.35);
+  border-radius: 999px;
+  background: rgba(36, 35, 31, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.zoom-controls,
+.compare-controls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.compare-controls[hidden] {
+  display: none;
+}
+
+.lightbox-toolbar button {
+  min-width: 42px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #f4f1ec;
+  font: 12px Montserrat-Regular, Arial, sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lightbox-toolbar button:hover:not(:disabled),
+.lightbox-toolbar button[aria-pressed="true"] {
+  background: #f4f1ec;
+  color: #24231f;
+}
+
+.lightbox-toolbar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.zoom-readout {
+  min-width: 54px;
+  color: #f4f1ec;
+  font: 11px Montserrat-Regular, Arial, sans-serif;
+  text-align: center;
+}
+
+/* Индикатор загрузки */
+.image-loading {
+  position: absolute;
+  z-index: 11;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 15, 14, 0.48);
+}
+
+.image-loading[hidden] {
+  display: none;
+}
+
+.image-loading-card {
+  width: min(320px, 90%);
+  padding: 18px 20px;
+  border: 1px solid rgba(244, 241, 236, 0.28);
+  border-radius: 14px;
+  background: rgba(36, 35, 31, 0.92);
+  color: #f4f1ec;
+  text-align: center;
+}
+
+.image-loading-text {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.loading-track {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(244, 241, 236, 0.2);
+}
+
+.loading-indicator {
+  width: 35%;
+  height: 100%;
+  border-radius: inherit;
+  background: #d59a82;
+  animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(320%);
+  }
 }
 
 .close,
 .prev,
 .next {
   position: absolute;
+  z-index: 14;
   border: 0;
+  padding: 15px;
   background: none;
   color: white;
   font-size: 30px;
   cursor: pointer;
-  padding: 15px;
 }
 
 .close {
-  right: 20px;
   top: 12px;
+  right: 20px;
 }
 
 .prev {
@@ -467,43 +626,7 @@ a {
   user-select: none;
 }
 
-/* Переключатель «До / После» в лайтбоксе */
-.compare-controls {
-  position: absolute;
-  z-index: 12;
-  left: 50%;
-  bottom: max(22px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px;
-  border: 1px solid rgba(244, 241, 236, 0.35);
-  border-radius: 999px;
-  background: rgba(36, 35, 31, 0.88);
-  backdrop-filter: blur(10px);
-}
-
-.compare-controls[hidden] {
-  display: none;
-}
-
-.compare-controls button {
-  min-width: 82px;
-  border: 0;
-  border-radius: 999px;
-  padding: 10px 18px;
-  background: transparent;
-  color: #f4f1ec;
-  font: 12px Montserrat-Regular, Arial, sans-serif;
-  cursor: pointer;
-}
-
-.compare-controls button[aria-pressed="true"] {
-  background: #f4f1ec;
-  color: #24231f;
-}
-
+/* Кнопка «Наверх» */
 .to-top {
   position: fixed;
   z-index: 8;
@@ -840,13 +963,26 @@ a {
     grid-template-columns: 1fr;
   }
 
-  .compare-controls {
-    bottom: max(14px, env(safe-area-inset-bottom));
+  .lightbox-toolbar {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    gap: 5px;
+    padding: 4px;
   }
 
-  .compare-controls button {
-    min-width: 72px;
-    padding: 10px 14px;
+  .lightbox-toolbar button {
+    min-width: 34px;
+    min-height: 38px;
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .zoom-readout {
+    min-width: 42px;
+    font-size: 10px;
+  }
+
+  .image-loading-card {
+    padding: 15px;
   }
 
   .nav {
@@ -869,7 +1005,9 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .to-top,
-  .menu-toggle span {
+  .menu-toggle span,
+  .loading-indicator {
     transition: none;
+    animation-duration: 2.5s;
   }
 }
