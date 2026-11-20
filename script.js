@@ -49,10 +49,10 @@ const layoutPlans = {
   all: [
     one("retouch", 13),
     one("retouch", 10),
-    one("retouch", 11),
+    one("retouch", 8),
     one("retouch", 12),
     linked("design", [21, 22, 23]),
-    one("retouch", 8),
+    one("retouch", 11),
     linked("design", [24, 25]),
     one("retouch", 14),
     one("ai", 45),
@@ -99,9 +99,9 @@ const layoutPlans = {
   retouch: [
     one("retouch", 13),
     one("retouch", 10),
-    one("retouch", 11),
-    one("retouch", 12),
     one("retouch", 8),
+    one("retouch", 12),
+    one("retouch", 11),
     one("retouch", 14),
     one("retouch", 16),
     one("retouch", 9),
@@ -213,12 +213,14 @@ function columnCount() {
   return 12;
 }
 
-function contentHeight(element) {
+function getContentHeight(element) {
   if (element.classList.contains("gallery-group")) {
+    const groupRect = element.getBoundingClientRect();
     const photos = [...element.querySelectorAll(".photo")];
+
     return Math.max(
       0,
-      ...photos.map((photo) => photo.getBoundingClientRect().height),
+      ...photos.map((photo) => photo.getBoundingClientRect().bottom - groupRect.top),
     );
   }
 
@@ -229,15 +231,19 @@ function updateGridSpans() {
   requestAnimationFrame(() => {
     const styles = getComputedStyle(grid);
     const rowUnit =
-      parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
-    const rowGap = parseFloat(styles.rowGap) || 12;
+      parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 1;
+    const rowGap =
+      parseFloat(styles.getPropertyValue("--gallery-row-gap")) || 1;
+    const targetGap =
+      parseFloat(styles.getPropertyValue("--gallery-target-gap")) || 20;
 
     for (const element of grid.children) {
-      const height = contentHeight(element);
+      const height = getContentHeight(element);
       const span = Math.max(
         1,
-        Math.ceil((height + rowGap) / (rowUnit + rowGap)),
+        Math.ceil((height + targetGap) / (rowUnit + rowGap)),
       );
+
       element.style.gridRowEnd = `span ${span}`;
     }
   });
@@ -310,6 +316,7 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
+
       if (!work || (filter !== "all" && work.category !== filter)) continue;
 
       grid.append(makeCard(work));
@@ -328,7 +335,10 @@ function draw(filter = "all") {
     });
 
     if (groupElement) grid.append(groupElement);
-    members.forEach((work) => used.add(key(work.category, work.id)));
+
+    members.forEach((work) => {
+      used.add(key(work.category, work.id));
+    });
   }
 
   visibleWorks.forEach((work) => {
@@ -436,16 +446,6 @@ toTop.addEventListener("click", () => {
 
 updateToTop();
 
-document.addEventListener("keydown", (event) => {
-  if (modal.classList.contains("open")) {
-    if (event.key === "Escape") closeModal();
-    if (event.key === "ArrowRight") step(1);
-    if (event.key === "ArrowLeft") step(-1);
-  }
-
-  if (event.key === "Escape") closeMenu();
-});
-
 // Почта
 const mail = ["solovann83", "yandex.ru"].join("@");
 
@@ -458,7 +458,7 @@ document.querySelector("#emailLink").addEventListener("click", (event) => {
   window.location.href = link.href;
 });
 
-// Перестройка сетки при изменении ширины
+// Перестроение сетки при изменении ширины
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => draw(currentFilter), 150);
