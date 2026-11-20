@@ -416,7 +416,7 @@ a {
   margin-top: 50px;
 }
 
-/* Лайтбокс и прокручиваемая область увеличения */
+/* Лайтбокс */
 .modal {
   position: fixed;
   inset: 0;
@@ -476,6 +476,13 @@ a {
 .modal.is-zoomed .modal-image {
   max-width: none;
   max-height: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.modal.is-zoomed .modal-viewport.is-dragging .modal-image {
+  cursor: grabbing;
 }
 
 /* Панель масштаба и сравнения */
@@ -827,9 +834,7 @@ a {
     width: 18px;
     height: 1.5px;
     background: currentColor;
-    transition:
-      transform 0.2s ease,
-      opacity 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
   }
 
   .menu-toggle.is-open span:first-child {
