@@ -228,6 +228,7 @@ function lightboxPath(work, state = "after") {
       ? "assets/img/originals/retouch/15_before.jpg"
       : "assets/img/originals/retouch/15_after.jpg";
   }
+
   return originalPath(work);
 }
 
@@ -309,9 +310,7 @@ function makeCard(work, insideGroup = false) {
   const item = document.createElement("article");
   item.className = insideGroup ? "item group-item" : "item grid-single";
 
-  if (!insideGroup) {
-    item.style.gridColumn = isWork15(work) ? "span 6" : "span 3";
-  }
+  // Ширину задают CSS-правила для соответствующего размера экрана.
   if (isWork15(work)) item.classList.add("featured-work");
 
   const photo = document.createElement("div");
