@@ -5,20 +5,8 @@ const makeWorks = (category, start, end, extension = "jpg") =>
   });
 
 const aiOriginals = [
-  "42.png",
-  "43.jpg",
-  "44.jpg",
-  "45.png",
-  "46.png",
-  "47.png",
-  "48.jpg",
-  "49.png",
-  "50.png",
-  "51.jpg",
-  "52.png",
-  "53.jpg",
-  "54.jpg",
-  "55.png",
+  "42.png", "43.jpg", "44.jpg", "45.png", "46.png", "47.png", "48.jpg",
+  "49.png", "50.png", "51.jpg", "52.png", "53.jpg", "54.jpg", "55.png",
 ];
 
 const works = [
@@ -165,7 +153,7 @@ const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
 
-/* Оборачиваем изображение, чтобы его можно было прокручивать при увеличении */
+/* Оборачиваем изображение для прокрутки увеличенного кадра */
 const modalViewport = document.createElement("div");
 modalViewport.className = "modal-viewport";
 modalImage.classList.add("modal-image");
@@ -186,16 +174,13 @@ loadingOverlay.innerHTML = `
 `;
 modalViewport.append(loadingOverlay);
 
-/* Панель увеличения и сравнения */
+/* Панель масштаба и сравнения */
 const lightboxToolbar = document.createElement("div");
 lightboxToolbar.className = "lightbox-toolbar";
 lightboxToolbar.innerHTML = `
   <div class="zoom-controls" role="group" aria-label="Масштаб изображения">
-    <button type="button" data-zoom="out" aria-label="Уменьшить">−</button>
-    <button type="button" data-zoom="native" aria-label="Показать в размере 100%">100%</button>
-    <span class="zoom-readout" aria-live="polite">Вписать</span>
-    <button type="button" data-zoom="in" aria-label="Увеличить">+</button>
-    <button type="button" data-zoom="fit" aria-label="Вписать в экран">В экран</button>
+    <button type="button" data-zoom="fit" aria-pressed="true">Вписать</button>
+    <button type="button" data-zoom="native" aria-pressed="false">100%</button>
   </div>
   <div class="compare-controls" role="group" aria-label="Сравнение до и после" hidden>
     <button type="button" data-compare="before" aria-pressed="false">До</button>
@@ -205,7 +190,6 @@ lightboxToolbar.innerHTML = `
 modal.append(lightboxToolbar);
 
 const compareControls = lightboxToolbar.querySelector(".compare-controls");
-const zoomReadout = lightboxToolbar.querySelector(".zoom-readout");
 const zoomButtons = lightboxToolbar.querySelectorAll("[data-zoom]");
 
 let visibleWorks = [];
@@ -234,7 +218,6 @@ function lightboxPath(work, state = "after") {
       ? "assets/img/originals/retouch/15_before.jpg"
       : "assets/img/originals/retouch/15_after.jpg";
   }
-
   return originalPath(work);
 }
 
@@ -369,7 +352,10 @@ function makeGroup(block) {
   return groupElement;
 }
 
-function setLoading(isLoading, message = "Пожалуйста, подождите — идёт загрузка…") {
+function setLoading(
+  isLoading,
+  message = "Пожалуйста, подождите — идёт загрузка…",
+) {
   loadingOverlay.hidden = !isLoading;
   modalImage.classList.toggle("is-loading", isLoading);
 
@@ -381,6 +367,24 @@ function setLoading(isLoading, message = "Пожалуйста, подождит
   });
 }
 
+function getFitScale() {
+  return Math.min(
+    modalViewport.clientWidth / modalImage.naturalWidth,
+    modalViewport.clientHeight / modalImage.naturalHeight,
+    1,
+  );
+}
+
+function setZoomButtonState(mode) {
+  lightboxToolbar
+    .querySelector('[data-zoom="fit"]')
+    .setAttribute("aria-pressed", String(mode === "fit"));
+
+  lightboxToolbar
+    .querySelector('[data-zoom="native"]')
+    .setAttribute("aria-pressed", String(mode === "native"));
+}
+
 function applyZoom() {
   if (!imageReady || !modalImage.naturalWidth) return;
 
@@ -388,14 +392,17 @@ function applyZoom() {
     modal.classList.remove("is-zoomed");
     modalImage.style.width = "";
     modalImage.style.height = "";
-    zoomReadout.textContent = "Вписать";
+    setZoomButtonState("fit");
     return;
   }
 
   modal.classList.add("is-zoomed");
-  modalImage.style.width = `${Math.round(modalImage.naturalWidth * zoomScale)}px`;
-  modalImage.style.height = `${Math.round(modalImage.naturalHeight * zoomScale)}px`;
-  zoomReadout.textContent = `${Math.round(zoomScale * 100)}%`;
+  modalImage.style.width =
+    `${Math.round(modalImage.naturalWidth * zoomScale)}px`;
+  modalImage.style.height =
+    `${Math.round(modalImage.naturalHeight * zoomScale)}px`;
+
+  setZoomButtonState(zoomScale === 1 ? "native" : "none");
 }
 
 function loadModalImage(src, alt) {
@@ -413,7 +420,7 @@ function loadModalImage(src, alt) {
     try {
       if (modalImage.decode) await modalImage.decode();
     } catch {
-      /* Некоторые браузеры могут отклонить decode при уже готовом изображении. */
+      /* Некоторые браузеры отклоняют decode для уже загруженного изображения. */
     }
 
     if (requestId !== imageRequestId) return;
@@ -443,28 +450,35 @@ function loadModalImage(src, alt) {
   }
 }
 
-function setZoom(nextScale) {
+function setZoom(nextScale, clientX = null, clientY = null) {
   if (!imageReady) return;
+
+  const oldScale = zoomScale === 0 ? getFitScale() : zoomScale;
+  const rect = modalViewport.getBoundingClientRect();
+  const anchorX = clientX === null ? rect.width / 2 : clientX - rect.left;
+  const anchorY = clientY === null ? rect.height / 2 : clientY - rect.top;
+  const contentX = modalViewport.scrollLeft + anchorX;
+  const contentY = modalViewport.scrollTop + anchorY;
 
   zoomScale = nextScale;
-  modalViewport.scrollTop = 0;
-  modalViewport.scrollLeft = 0;
   applyZoom();
-}
 
-function zoomIn() {
-  if (!imageReady) return;
-  setZoom(zoomScale === 0 ? 1 : Math.min(4, zoomScale * 1.25));
-}
-
-function zoomOut() {
-  if (!imageReady) return;
-
-  if (zoomScale <= 1) {
-    setZoom(0);
-  } else {
-    setZoom(Math.max(1, zoomScale / 1.25));
+  if (nextScale === 0) {
+    modalViewport.scrollTop = 0;
+    modalViewport.scrollLeft = 0;
+    return;
   }
+
+  requestAnimationFrame(() => {
+    modalViewport.scrollLeft = Math.max(
+      0,
+      contentX * (nextScale / oldScale) - anchorX,
+    );
+    modalViewport.scrollTop = Math.max(
+      0,
+      contentY * (nextScale / oldScale) - anchorY,
+    );
+  });
 }
 
 function setCompareState(state) {
@@ -495,6 +509,7 @@ function showModal() {
 
   zoomScale = 0;
   modal.classList.remove("is-zoomed");
+  setZoomButtonState("fit");
 
   if (isWork15(work)) {
     compareControls.hidden = false;
@@ -559,22 +574,40 @@ function draw(filter = "all") {
   updateGridSpans();
 }
 
-/* Управление масштабом */
+/* Кнопки масштаба */
 lightboxToolbar
-  .querySelector('[data-zoom="in"]')
-  .addEventListener("click", zoomIn);
-
-lightboxToolbar
-  .querySelector('[data-zoom="out"]')
-  .addEventListener("click", zoomOut);
+  .querySelector('[data-zoom="fit"]')
+  .addEventListener("click", () => setZoom(0));
 
 lightboxToolbar
   .querySelector('[data-zoom="native"]')
   .addEventListener("click", () => setZoom(1));
 
-lightboxToolbar
-  .querySelector('[data-zoom="fit"]')
-  .addEventListener("click", () => setZoom(0));
+/* Колесо мыши меняет масштаб только на десктопе */
+modalViewport.addEventListener(
+  "wheel",
+  (event) => {
+    if (!modal.classList.contains("open") || !imageReady) return;
+    if (window.matchMedia("(max-width: 760px)").matches) return;
+
+    event.preventDefault();
+
+    const fitScale = getFitScale();
+    const baseScale = zoomScale === 0 ? fitScale : zoomScale;
+    const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
+    const nextScale = Math.min(
+      4,
+      Math.max(fitScale, baseScale * factor),
+    );
+
+    if (nextScale <= fitScale * 1.01) {
+      setZoom(0);
+    } else {
+      setZoom(nextScale, event.clientX, event.clientY);
+    }
+  },
+  { passive: false },
+);
 
 compareControls.querySelectorAll("button").forEach((button) => {
   button.addEventListener("click", () => {
