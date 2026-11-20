@@ -228,7 +228,6 @@ function lightboxPath(work, state = "after") {
       ? "assets/img/originals/retouch/15_before.jpg"
       : "assets/img/originals/retouch/15_after.jpg";
   }
-
   return originalPath(work);
 }
 
@@ -313,7 +312,6 @@ function makeCard(work, insideGroup = false) {
   if (!insideGroup) {
     item.style.gridColumn = isWork15(work) ? "span 6" : "span 3";
   }
-
   if (isWork15(work)) item.classList.add("featured-work");
 
   const photo = document.createElement("div");
@@ -348,7 +346,6 @@ function makeGroup(block) {
   groupElement.className = "gallery-group";
 
   const columns = columnCount();
-
   groupElement.style.setProperty(
     "--group-span",
     Math.min(members.length * 3, columns),
@@ -519,7 +516,6 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const contentX = modalViewport.scrollLeft + anchorX;
   const contentY = modalViewport.scrollTop + anchorY;
 
-  /* Масштаб не превышает натуральный размер файла: максимум 100%. */
   zoomScale = nextScale === 0 ? 0 : Math.min(1, nextScale);
   applyZoom();
 
@@ -833,16 +829,66 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeMenu();
 });
 
-// Почта
+// Почтовый адрес: первое нажатие раскрывает, второе копирует.
 const mail = ["solovann83", "yandex.ru"].join("@");
+const emailLink = document.querySelector("#emailLink");
+let emailRevealed = false;
+let copyResetTimer;
 
-document.querySelector("#emailLink").addEventListener("click", (event) => {
+emailLink.setAttribute("role", "button");
+emailLink.setAttribute("aria-expanded", "false");
+emailLink.setAttribute("aria-live", "polite");
+emailLink.setAttribute("aria-label", "Показать адрес электронной почты");
+
+async function copyEmailAddress() {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(mail);
+    } else {
+      const temporaryInput = document.createElement("textarea");
+      temporaryInput.value = mail;
+      temporaryInput.setAttribute("readonly", "");
+      temporaryInput.style.position = "fixed";
+      temporaryInput.style.opacity = "0";
+      document.body.append(temporaryInput);
+      temporaryInput.select();
+
+      const copied = document.execCommand("copy");
+      temporaryInput.remove();
+
+      if (!copied) throw new Error("Copy command failed");
+    }
+
+    emailLink.textContent = "Скопировано ✓";
+    emailLink.setAttribute("aria-label", "Адрес скопирован");
+  } catch {
+    emailLink.textContent = "Не удалось скопировать";
+    emailLink.setAttribute(
+      "aria-label",
+      `Не удалось скопировать адрес ${mail}`,
+    );
+  }
+
+  clearTimeout(copyResetTimer);
+  copyResetTimer = setTimeout(() => {
+    emailLink.textContent = mail;
+    emailLink.setAttribute("aria-label", `Скопировать адрес ${mail}`);
+  }, 1800);
+}
+
+emailLink.addEventListener("click", async (event) => {
   event.preventDefault();
 
-  const link = event.currentTarget;
-  link.href = `mailto:${mail}`;
-  link.textContent = `${mail} ↗`;
-  window.location.href = link.href;
+  if (!emailRevealed) {
+    emailRevealed = true;
+    emailLink.textContent = mail;
+    emailLink.classList.add("is-revealed");
+    emailLink.setAttribute("aria-expanded", "true");
+    emailLink.setAttribute("aria-label", `Скопировать адрес ${mail}`);
+    return;
+  }
+
+  await copyEmailAddress();
 });
 
 // Перестройка сетки при изменении ширины
