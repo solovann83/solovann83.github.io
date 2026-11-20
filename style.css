@@ -416,7 +416,7 @@ a {
   margin-top: 50px;
 }
 
-/* Лайтбокс и прокрутка увеличенного изображения */
+/* Лайтбокс и прокручиваемая область */
 .modal {
   position: fixed;
   inset: 0;
@@ -485,7 +485,6 @@ a {
   cursor: grabbing;
 }
 
-/* Панель масштаба и сравнения */
 .lightbox-toolbar {
   position: absolute;
   z-index: 13;
@@ -538,7 +537,7 @@ a {
   cursor: default;
 }
 
-/* Индикатор загрузки закреплён по центру экрана */
+/* Индикатор загрузки фиксирован относительно экрана */
 .image-loading {
   position: fixed;
   z-index: 12;
@@ -625,7 +624,6 @@ a {
   user-select: none;
 }
 
-/* Кнопка «Наверх» */
 .to-top {
   position: fixed;
   z-index: 8;
