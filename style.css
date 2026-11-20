@@ -5,7 +5,7 @@
   --line: #d8d3ca;
   --accent: #b35c43;
   --card: #ebe7df;
-  --gallery-gap: 16px;
+  --gallery-gap: 20px;
   --gallery-row-unit: 8px;
 }
 
@@ -459,7 +459,6 @@ a {
   user-select: none;
 }
 
-/* Кнопка «Наверх» */
 .to-top {
   position: fixed;
   z-index: 8;
@@ -499,7 +498,7 @@ a {
 
 @media (max-width: 760px) {
   :root {
-    --gallery-gap: 12px;
+    --gallery-gap: 16px;
     --gallery-row-unit: 7px;
   }
 
@@ -764,7 +763,7 @@ a {
 
 @media (max-width: 430px) {
   :root {
-    --gallery-gap: 12px;
+    --gallery-gap: 16px;
     --gallery-row-unit: 6px;
   }
 
