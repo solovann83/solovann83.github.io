@@ -70,6 +70,22 @@ function buildGroups(items) {
   return groups;
 }
 
+function makeCard(work) {
+  const item = document.createElement("article");
+  item.className = "item";
+  item.innerHTML = `
+    <div class="photo">
+      <img
+        loading="lazy"
+        src="${previewPath(work)}"
+        alt="Работа из портфолио"
+      >
+    </div>
+  `;
+  item.onclick = () => openModal(visible.indexOf(work));
+  return item;
+}
+
 function draw(filter = "all") {
   grid.innerHTML = "";
   visible = works.filter(
@@ -77,19 +93,16 @@ function draw(filter = "all") {
   );
 
   for (const bundle of buildGroups(visible)) {
+    if (bundle.length === 1) {
+      grid.append(makeCard(bundle[0]));
+      continue;
+    }
+
     const group = document.createElement("div");
-    group.className = "masonry-group";
+    group.className = `masonry-group group-${bundle.length}`;
 
     for (const work of bundle) {
-      const item = document.createElement("article");
-      item.className = "item";
-      item.innerHTML = `
-        <div class="photo">
-          <img loading="lazy" src="${previewPath(work)}" alt="Работа из портфолио">
-        </div>
-      `;
-      item.onclick = () => openModal(visible.indexOf(work));
-      group.append(item);
+      group.append(makeCard(work));
     }
 
     grid.append(group);
