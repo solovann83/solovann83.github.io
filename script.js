@@ -166,7 +166,8 @@ const modalImage = modal.querySelector("img");
 
 let visibleWorks = [];
 let currentIndex = 0;
-let resizeObserver;
+let currentFilter = "all";
+let resizeTimer;
 
 function previewPath(work) {
   return `assets/img/previews/${work.category}/preview-${work.id}.jpg`;
@@ -206,52 +207,73 @@ function aspectRatio(work) {
   return 4 / 3;
 }
 
-function columnsForViewport() {
-  if (window.matchMedia("(max-width: 430px)").matches) return 1;
-  if (window.matchMedia("(max-width: 760px)").matches) return 2;
-  return 4;
+function columnCount() {
+  if (window.matchMedia("(max-width: 430px)").matches) return 3;
+  if (window.matchMedia("(max-width: 760px)").matches) return 6;
+  return 12;
 }
 
-function setSpan(element, columns) {
-  element.style.gridRowEnd = "span 1";
+function cardColumnSpan() {
+  return 3;
+}
 
+function updateGridSpans() {
   requestAnimationFrame(() => {
-    const height = element.getBoundingClientRect().height;
     const styles = getComputedStyle(grid);
-    const rowUnit = parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
-    const gap = parseFloat(styles.rowGap) || 12;
-    const span = Math.max(1, Math.ceil((height + gap) / (rowUnit + gap)));
-    element.style.gridRowEnd = `span ${span}`;
+    const rowUnit =
+      parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
+    const rowGap = parseFloat(styles.rowGap) || 12;
+
+    const items = [...grid.children];
+
+    items.forEach((element) => {
+      element.style.gridRowEnd = "span 1";
+    });
+
+    requestAnimationFrame(() => {
+      items.forEach((element) => {
+        const height = element.getBoundingClientRect().height;
+        const span = Math.max(
+          1,
+          Math.ceil((height + rowGap) / (rowUnit + rowGap)),
+        );
+        element.style.gridRowEnd = `span ${span}`;
+      });
+    });
   });
 }
 
-function createCard(work) {
+function makeCard(work, insideGroup = false) {
   const item = document.createElement("article");
-  item.className = "item";
-  item.style.gridColumn = `span ${columnsForViewport() === 4 ? 3 : columnsForViewport() === 2 ? 3 : 3}`;
+  item.className = insideGroup ? "item group-item" : "item grid-single";
+
+  if (!insideGroup) {
+    item.style.gridColumn = `span ${cardColumnSpan()}`;
+  }
 
   const photo = document.createElement("div");
   photo.className = "photo";
-  photo.style.aspectRatio = String(aspectRatio(work));
+  photo.style.setProperty("--image-ratio", String(aspectRatio(work)));
 
   const image = document.createElement("img");
   image.loading = "lazy";
   image.src = previewPath(work);
   image.alt = "Работа из портфолио";
-  image.addEventListener("load", () => setSpan(item), { once: true });
+
+  image.addEventListener("load", updateGridSpans, { once: true });
 
   photo.append(image);
   item.append(photo);
 
   item.addEventListener("click", () => {
     const index = visibleWorks.indexOf(work);
-    if (index >= 0) openModal(index);
+    if (index !== -1) openModal(index);
   });
 
   return item;
 }
 
-function createGroup(block, viewportColumns) {
+function makeGroup(block) {
   const members = block.keys
     .map((memberKey) => workByKey.get(memberKey))
     .filter(Boolean);
@@ -261,101 +283,67 @@ function createGroup(block, viewportColumns) {
   const groupElement = document.createElement("div");
   groupElement.className = "gallery-group";
 
-  const columns = Math.min(members.length, viewportColumns);
-  groupElement.style.setProperty("--group-columns", columns);
+  const columns = columnCount();
+  const unitSpan = 3;
+  const groupSpan = Math.min(members.length * unitSpan, columns);
 
-  const baseSpan = viewportColumns === 4 ? 3 : viewportColumns === 2 ? 3 : 3;
-  const groupSpan = Math.min(members.length * baseSpan, viewportColumns * 3);
   groupElement.style.setProperty("--group-span", groupSpan);
+  groupElement.style.setProperty(
+    "--group-columns",
+    Math.min(members.length, columns / unitSpan),
+  );
 
   members.forEach((work) => {
-    const card = createCard(work);
-    groupElement.append(card);
+    groupElement.append(makeCard(work, true));
   });
-
-  groupElement.addEventListener("animationend", () => setSpan(groupElement));
-  requestAnimationFrame(() => setSpan(groupElement));
 
   return groupElement;
 }
 
-function packItems(blocks, viewportColumns) {
-  const packedRows = [];
-  let row = [];
-  let usedUnits = 0;
-
-  const capacity = viewportColumns;
-
-  function flush() {
-    if (row.length) packedRows.push(row);
-    row = [];
-    usedUnits = 0;
-  }
-
-  for (const block of blocks) {
-    if (block.type === "group") {
-      const units = block.keys.length;
-
-      if (units > capacity) {
-        flush();
-        packedRows.push([block]);
-        continue;
-      }
-
-      if (usedUnits + units > capacity) flush();
-
-      row.push(block);
-      usedUnits += units;
-      continue;
-    }
-
-    if (usedUnits + 1 > capacity) flush();
-
-    row.push(block);
-    usedUnits += 1;
-  }
-
-  flush();
-  return packedRows;
-}
-
 function draw(filter = "all") {
-  if (resizeObserver) resizeObserver.disconnect();
+  currentFilter = filter;
   grid.replaceChildren();
 
   visibleWorks = works.filter(
     (work) => filter === "all" || work.category === filter,
   );
 
-  const blocks = layoutPlans[filter] || layoutPlans.all;
-  const viewportColumns = columnsForViewport();
-  const rows = packItems(blocks, viewportColumns);
+  const plan = layoutPlans[filter] || layoutPlans.all;
+  const used = new Set();
 
-  rows.forEach((blocksInRow) => {
-    const row = document.createElement("div");
-    row.className = "gallery-row";
-    row.style.display = "contents";
+  for (const block of plan) {
+    if (block.type === "single") {
+      const work = workByKey.get(block.key);
+      if (!work || work.category !== filter && filter !== "all") continue;
 
-    blocksInRow.forEach((block) => {
-      if (block.type === "single") {
-        const work = workByKey.get(block.key);
-        if (work) row.append(createCard(work));
-      } else {
-        const groupElement = createGroup(block, viewportColumns);
-        if (groupElement) row.append(groupElement);
-      }
+      grid.append(makeCard(work));
+      used.add(block.key);
+      continue;
+    }
+
+    const members = block.keys
+      .map((memberKey) => workByKey.get(memberKey))
+      .filter((work) => work && (filter === "all" || work.category === filter));
+
+    if (!members.length) continue;
+
+    const groupElement = makeGroup({
+      keys: members.map((work) => key(work.category, work.id)),
     });
 
-    grid.append(row);
+    if (groupElement) grid.append(groupElement);
+    members.forEach((work) => used.add(key(work.category, work.id)));
+  }
+
+  // На случай будущего добавления работы, которой ещё нет в плане.
+  visibleWorks.forEach((work) => {
+    const workKey = key(work.category, work.id);
+    if (!used.has(workKey)) grid.append(makeCard(work));
   });
 
-  requestAnimationFrame(() => {
-    grid.querySelectorAll(":scope > .gallery-row > .item, :scope > .gallery-row > .gallery-group")
-      .forEach((element) => setSpan(element));
-  });
+  updateGridSpans();
 }
 
-// Фильтры
 document.querySelectorAll(".filter").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelector(".filter.active")?.classList.remove("active");
@@ -387,6 +375,7 @@ function closeModal() {
 
 function step(direction) {
   if (!visibleWorks.length) return;
+
   currentIndex =
     (currentIndex + direction + visibleWorks.length) % visibleWorks.length;
   showModal();
@@ -398,16 +387,6 @@ modal.querySelector(".next").addEventListener("click", () => step(1));
 
 modal.addEventListener("click", (event) => {
   if (event.target === modal) closeModal();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (modal.classList.contains("open")) {
-    if (event.key === "Escape") closeModal();
-    if (event.key === "ArrowRight") step(1);
-    if (event.key === "ArrowLeft") step(-1);
-  }
-
-  if (event.key === "Escape") closeMenu();
 });
 
 // Мобильное меню
@@ -441,6 +420,7 @@ menuButton.addEventListener("click", () => {
 });
 
 siteNav.querySelector(".nav-close").addEventListener("click", closeMenu);
+
 siteNav.querySelectorAll("a").forEach((link) => {
   link.addEventListener("click", closeMenu);
 });
@@ -453,31 +433,39 @@ function updateToTop() {
 }
 
 window.addEventListener("scroll", updateToTop, { passive: true });
+
 toTop.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
+
 updateToTop();
+
+document.addEventListener("keydown", (event) => {
+  if (modal.classList.contains("open")) {
+    if (event.key === "Escape") closeModal();
+    if (event.key === "ArrowRight") step(1);
+    if (event.key === "ArrowLeft") step(-1);
+  }
+
+  if (event.key === "Escape") closeMenu();
+});
 
 // Почта
 const mail = ["solovann83", "yandex.ru"].join("@");
+
 document.querySelector("#emailLink").addEventListener("click", (event) => {
   event.preventDefault();
+
   const link = event.currentTarget;
   link.href = `mailto:${mail}`;
   link.textContent = `${mail} ↗`;
   window.location.href = link.href;
 });
 
-// Перестроение плиток при изменении ширины окна
-let resizeTimer;
-
+// Пересчёт размеров при загрузке изображений и изменении окна
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    const activeFilter =
-      document.querySelector(".filter.active")?.dataset.filter || "all";
-    draw(activeFilter);
-  }, 150);
+  resizeTimer = setTimeout(() => draw(currentFilter), 150);
 });
 
 draw();
