@@ -6,7 +6,9 @@
   --accent: #b35c43;
   --card: #ebe7df;
   --gallery-gap: 20px;
-  --gallery-row-unit: 8px;
+  --gallery-row-unit: 1px;
+  --gallery-row-gap: 1px;
+  --gallery-target-gap: 20px;
 }
 
 * {
@@ -215,7 +217,8 @@ a {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-auto-rows: var(--gallery-row-unit);
   grid-auto-flow: row dense;
-  gap: var(--gallery-gap);
+  column-gap: var(--gallery-gap);
+  row-gap: var(--gallery-row-gap);
   align-items: start;
 }
 
@@ -499,7 +502,9 @@ a {
 @media (max-width: 760px) {
   :root {
     --gallery-gap: 16px;
-    --gallery-row-unit: 7px;
+    --gallery-row-unit: 1px;
+    --gallery-row-gap: 1px;
+    --gallery-target-gap: 16px;
   }
 
   .wrap {
@@ -764,7 +769,9 @@ a {
 @media (max-width: 430px) {
   :root {
     --gallery-gap: 16px;
-    --gallery-row-unit: 6px;
+    --gallery-row-unit: 1px;
+    --gallery-row-gap: 1px;
+    --gallery-target-gap: 16px;
   }
 
   .hero-aside {
