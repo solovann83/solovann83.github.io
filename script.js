@@ -5,8 +5,20 @@ const makeWorks = (category, start, end, extension = "jpg") =>
   });
 
 const aiOriginals = [
-  "42.png", "43.jpg", "44.jpg", "45.png", "46.png", "47.png", "48.jpg",
-  "49.png", "50.png", "51.jpg", "52.png", "53.jpg", "54.jpg", "55.png",
+  "42.png",
+  "43.jpg",
+  "44.jpg",
+  "45.png",
+  "46.png",
+  "47.png",
+  "48.jpg",
+  "49.png",
+  "50.png",
+  "51.jpg",
+  "52.png",
+  "53.jpg",
+  "54.jpg",
+  "55.png",
 ];
 
 const works = [
@@ -153,7 +165,7 @@ const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
 
-/* Оборачиваем изображение для прокрутки увеличенного кадра */
+/* Оборачиваем изображение, чтобы прокручивать увеличенный кадр */
 const modalViewport = document.createElement("div");
 modalViewport.className = "modal-viewport";
 modalImage.classList.add("modal-image");
@@ -218,6 +230,7 @@ function lightboxPath(work, state = "after") {
       ? "assets/img/originals/retouch/15_before.jpg"
       : "assets/img/originals/retouch/15_after.jpg";
   }
+
   return originalPath(work);
 }
 
@@ -289,6 +302,7 @@ function updateGridSpans() {
         1,
         Math.ceil((height + targetGap) / (rowUnit + rowGap)),
       );
+
       element.style.gridRowEnd = `span ${span}`;
     }
   });
@@ -420,7 +434,7 @@ function loadModalImage(src, alt) {
     try {
       if (modalImage.decode) await modalImage.decode();
     } catch {
-      /* Некоторые браузеры отклоняют decode для уже загруженного изображения. */
+      /* Некоторые браузеры отклоняют decode уже загруженного изображения. */
     }
 
     if (requestId !== imageRequestId) return;
@@ -428,9 +442,11 @@ function loadModalImage(src, alt) {
     imageReady = true;
     loadingOverlay.hidden = true;
     modalImage.classList.remove("is-loading");
+
     zoomButtons.forEach((button) => {
       button.disabled = false;
     });
+
     applyZoom();
   };
 
@@ -438,6 +454,7 @@ function loadModalImage(src, alt) {
 
   modalImage.onerror = () => {
     if (requestId !== imageRequestId) return;
+
     imageReady = false;
     setLoading(true, "Не удалось загрузить изображение.");
     loadingOverlay.querySelector(".loading-track").hidden = true;
@@ -460,23 +477,26 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const contentX = modalViewport.scrollLeft + anchorX;
   const contentY = modalViewport.scrollTop + anchorY;
 
-  zoomScale = nextScale;
+  /* Ограничиваем масштаб натуральным размером изображения: максимум 100%. */
+  zoomScale = nextScale === 0 ? 0 : Math.min(1, nextScale);
   applyZoom();
 
-  if (nextScale === 0) {
+  if (zoomScale === 0) {
     modalViewport.scrollTop = 0;
     modalViewport.scrollLeft = 0;
     return;
   }
 
+  const appliedScale = zoomScale;
+
   requestAnimationFrame(() => {
     modalViewport.scrollLeft = Math.max(
       0,
-      contentX * (nextScale / oldScale) - anchorX,
+      contentX * (appliedScale / oldScale) - anchorX,
     );
     modalViewport.scrollTop = Math.max(
       0,
-      contentY * (nextScale / oldScale) - anchorY,
+      contentY * (appliedScale / oldScale) - anchorY,
     );
   });
 }
@@ -545,7 +565,10 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
-      if (!work || (filter !== "all" && work.category !== filter)) continue;
+
+      if (!work || (filter !== "all" && work.category !== filter)) {
+        continue;
+      }
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -583,7 +606,7 @@ lightboxToolbar
   .querySelector('[data-zoom="native"]')
   .addEventListener("click", () => setZoom(1));
 
-/* Колесо мыши меняет масштаб только на десктопе */
+/* Колесо мыши изменяет масштаб только на десктопе */
 modalViewport.addEventListener(
   "wheel",
   (event) => {
@@ -595,10 +618,9 @@ modalViewport.addEventListener(
     const fitScale = getFitScale();
     const baseScale = zoomScale === 0 ? fitScale : zoomScale;
     const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
-    const nextScale = Math.min(
-      4,
-      Math.max(fitScale, baseScale * factor),
-    );
+
+    /* Нижняя граница — «Вписать», верхняя — реальный размер, 100%. */
+    const nextScale = Math.min(1, Math.max(fitScale, baseScale * factor));
 
     if (nextScale <= fitScale * 1.01) {
       setZoom(0);
