@@ -165,14 +165,12 @@ const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
 
-/* Прокручиваемая область изображения */
 const modalViewport = document.createElement("div");
 modalViewport.className = "modal-viewport";
 modalImage.classList.add("modal-image");
 modalImage.parentNode.insertBefore(modalViewport, modalImage);
 modalViewport.append(modalImage);
 
-/* Индикатор загрузки */
 const loadingOverlay = document.createElement("div");
 loadingOverlay.className = "image-loading";
 loadingOverlay.hidden = true;
@@ -186,7 +184,6 @@ loadingOverlay.innerHTML = `
 `;
 modalViewport.append(loadingOverlay);
 
-/* Панель масштаба и сравнения */
 const lightboxToolbar = document.createElement("div");
 lightboxToolbar.className = "lightbox-toolbar";
 lightboxToolbar.innerHTML = `
@@ -208,11 +205,11 @@ let visibleWorks = [];
 let currentIndex = 0;
 let currentFilter = "all";
 let resizeTimer;
-let compareState = "after";
 let zoomScale = 0;
 let imageRequestId = 0;
 let imageReady = false;
 let dragState = null;
+let pendingComparePosition = null;
 
 const isWork15 = (work) =>
   work?.category === "retouch" && work.id === "15";
@@ -303,6 +300,7 @@ function updateGridSpans() {
         1,
         Math.ceil((height + targetGap) / (rowUnit + rowGap)),
       );
+
       element.style.gridRowEnd = `span ${span}`;
     }
   });
@@ -350,6 +348,7 @@ function makeGroup(block) {
   groupElement.className = "gallery-group";
 
   const columns = columnCount();
+
   groupElement.style.setProperty(
     "--group-span",
     Math.min(members.length * 3, columns),
@@ -419,20 +418,44 @@ function applyZoom() {
   setZoomButtonState(zoomScale === 1 ? "native" : "none");
 }
 
+function getMaxScrollPosition() {
+  return {
+    x: Math.max(0, modalViewport.scrollWidth - modalViewport.clientWidth),
+    y: Math.max(0, modalViewport.scrollHeight - modalViewport.clientHeight),
+  };
+}
+
 function centerZoomedImage() {
   if (!imageReady || zoomScale === 0) return;
 
-  modalViewport.scrollLeft = Math.max(
-    0,
-    (modalImage.offsetWidth - modalViewport.clientWidth) / 2,
-  );
-  modalViewport.scrollTop = Math.max(
-    0,
-    (modalImage.offsetHeight - modalViewport.clientHeight) / 2,
-  );
+  const maxScroll = getMaxScrollPosition();
+  modalViewport.scrollLeft = maxScroll.x / 2;
+  modalViewport.scrollTop = maxScroll.y / 2;
 }
 
-function loadModalImage(src, alt) {
+function saveComparePosition() {
+  const maxScroll = getMaxScrollPosition();
+
+  pendingComparePosition = {
+    x: maxScroll.x > 0 ? modalViewport.scrollLeft / maxScroll.x : 0.5,
+    y: maxScroll.y > 0 ? modalViewport.scrollTop / maxScroll.y : 0.5,
+  };
+}
+
+function restoreComparePosition() {
+  if (!pendingComparePosition) return;
+
+  const position = pendingComparePosition;
+  pendingComparePosition = null;
+
+  requestAnimationFrame(() => {
+    const maxScroll = getMaxScrollPosition();
+    modalViewport.scrollLeft = position.x * maxScroll.x;
+    modalViewport.scrollTop = position.y * maxScroll.y;
+  });
+}
+
+function loadModalImage(src, alt, preserveComparePosition = false) {
   const requestId = ++imageRequestId;
   imageReady = false;
   setLoading(true);
@@ -447,7 +470,7 @@ function loadModalImage(src, alt) {
     try {
       if (modalImage.decode) await modalImage.decode();
     } catch {
-      /* Браузер может отклонить decode для уже загруженного изображения. */
+      /* Браузер может отклонить decode уже загруженного изображения. */
     }
 
     if (requestId !== imageRequestId) return;
@@ -462,8 +485,11 @@ function loadModalImage(src, alt) {
 
     applyZoom();
 
-    // При переключении «До / После» сохраняем масштаб и центрируем новый кадр.
-    if (zoomScale > 0) requestAnimationFrame(centerZoomedImage);
+    if (preserveComparePosition && zoomScale > 0) {
+      restoreComparePosition();
+    } else if (zoomScale > 0) {
+      requestAnimationFrame(centerZoomedImage);
+    }
   };
 
   modalImage.onload = finishLoad;
@@ -493,13 +519,13 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const contentX = modalViewport.scrollLeft + anchorX;
   const contentY = modalViewport.scrollTop + anchorY;
 
-  /* Ограничение: не больше натурального размера изображения, максимум 100%. */
+  /* Масштаб не превышает натуральный размер файла: максимум 100%. */
   zoomScale = nextScale === 0 ? 0 : Math.min(1, nextScale);
   applyZoom();
 
   if (zoomScale === 0) {
-    modalViewport.scrollTop = 0;
     modalViewport.scrollLeft = 0;
+    modalViewport.scrollTop = 0;
     return;
   }
 
@@ -523,8 +549,6 @@ function setZoom(nextScale, clientX = null, clientY = null) {
 }
 
 function setCompareState(state) {
-  compareState = state;
-
   compareControls
     .querySelector('[data-compare="before"]')
     .setAttribute("aria-pressed", String(state === "before"));
@@ -536,11 +560,15 @@ function setCompareState(state) {
   const work = visibleWorks[currentIndex];
   if (!isWork15(work)) return;
 
+  const preservePosition = zoomScale > 0;
+  if (preservePosition) saveComparePosition();
+
   loadModalImage(
     lightboxPath(work, state),
     state === "before"
       ? "Работа 15 до ретуши"
       : "Работа 15 после ретуши",
+    preservePosition,
   );
 }
 
@@ -549,13 +577,13 @@ function showModal() {
   if (!work) return;
 
   zoomScale = 0;
+  pendingComparePosition = null;
   modal.classList.remove("is-zoomed");
   modalViewport.classList.remove("is-dragging");
   setZoomButtonState("fit");
 
   if (isWork15(work)) {
     compareControls.hidden = false;
-    compareState = "after";
 
     compareControls
       .querySelector('[data-compare="before"]')
@@ -587,7 +615,10 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
-      if (!work || (filter !== "all" && work.category !== filter)) continue;
+
+      if (!work || (filter !== "all" && work.category !== filter)) {
+        continue;
+      }
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -616,7 +647,7 @@ function draw(filter = "all") {
   updateGridSpans();
 }
 
-/* Масштаб кнопками и колесом мыши */
+/* Кнопки масштаба */
 lightboxToolbar
   .querySelector('[data-zoom="fit"]')
   .addEventListener("click", () => setZoom(0));
@@ -625,6 +656,7 @@ lightboxToolbar
   .querySelector('[data-zoom="native"]')
   .addEventListener("click", () => setZoom(1));
 
+/* Колесо мыши масштабирует изображение на десктопе */
 modalViewport.addEventListener(
   "wheel",
   (event) => {
@@ -720,6 +752,7 @@ function closeModal() {
   modal.classList.remove("open");
   modal.classList.remove("is-zoomed");
   modalViewport.classList.remove("is-dragging");
+  pendingComparePosition = null;
   document.body.style.overflow = "";
 }
 
