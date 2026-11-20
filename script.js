@@ -45,6 +45,7 @@ const linked = (category, ids) => ({
   keys: ids.map((id) => key(category, id)),
 });
 
+/* Порядок из текущего script.js в GitHub сохранён */
 const layoutPlans = {
   all: [
     one("retouch", 13),
@@ -164,25 +165,60 @@ const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
 
+/* Оборачиваем изображение, чтобы его можно было прокручивать при увеличении */
+const modalViewport = document.createElement("div");
+modalViewport.className = "modal-viewport";
+modalImage.classList.add("modal-image");
+modalImage.parentNode.insertBefore(modalViewport, modalImage);
+modalViewport.append(modalImage);
+
+/* Индикатор загрузки */
+const loadingOverlay = document.createElement("div");
+loadingOverlay.className = "image-loading";
+loadingOverlay.hidden = true;
+loadingOverlay.innerHTML = `
+  <div class="image-loading-card" role="status" aria-live="polite">
+    <p class="image-loading-text">Пожалуйста, подождите — идёт загрузка…</p>
+    <div class="loading-track" aria-hidden="true">
+      <div class="loading-indicator"></div>
+    </div>
+  </div>
+`;
+modalViewport.append(loadingOverlay);
+
+/* Панель увеличения и сравнения */
+const lightboxToolbar = document.createElement("div");
+lightboxToolbar.className = "lightbox-toolbar";
+lightboxToolbar.innerHTML = `
+  <div class="zoom-controls" role="group" aria-label="Масштаб изображения">
+    <button type="button" data-zoom="out" aria-label="Уменьшить">−</button>
+    <button type="button" data-zoom="native" aria-label="Показать в размере 100%">100%</button>
+    <span class="zoom-readout" aria-live="polite">Вписать</span>
+    <button type="button" data-zoom="in" aria-label="Увеличить">+</button>
+    <button type="button" data-zoom="fit" aria-label="Вписать в экран">В экран</button>
+  </div>
+  <div class="compare-controls" role="group" aria-label="Сравнение до и после" hidden>
+    <button type="button" data-compare="before" aria-pressed="false">До</button>
+    <button type="button" data-compare="after" aria-pressed="true">После</button>
+  </div>
+`;
+modal.append(lightboxToolbar);
+
+const compareControls = lightboxToolbar.querySelector(".compare-controls");
+const zoomReadout = lightboxToolbar.querySelector(".zoom-readout");
+const zoomButtons = lightboxToolbar.querySelectorAll("[data-zoom]");
+
 let visibleWorks = [];
 let currentIndex = 0;
 let currentFilter = "all";
 let resizeTimer;
 let compareState = "after";
+let zoomScale = 0;
+let imageRequestId = 0;
+let imageReady = false;
 
 const isWork15 = (work) =>
   work?.category === "retouch" && work.id === "15";
-
-const compareControls = document.createElement("div");
-compareControls.className = "compare-controls";
-compareControls.setAttribute("role", "group");
-compareControls.setAttribute("aria-label", "Сравнение ретуши до и после");
-compareControls.hidden = true;
-compareControls.innerHTML = `
-  <button type="button" data-compare="before" aria-pressed="false">До</button>
-  <button type="button" data-compare="after" aria-pressed="true">После</button>
-`;
-modal.append(compareControls);
 
 function previewPath(work) {
   return `assets/img/previews/${work.category}/preview-${work.id}.jpg`;
@@ -190,6 +226,16 @@ function previewPath(work) {
 
 function originalPath(work) {
   return `assets/img/originals/${work.category}/${work.original}`;
+}
+
+function lightboxPath(work, state = "after") {
+  if (isWork15(work)) {
+    return state === "before"
+      ? "assets/img/originals/retouch/15_before.jpg"
+      : "assets/img/originals/retouch/15_after.jpg";
+  }
+
+  return originalPath(work);
 }
 
 function aspectRatio(work) {
@@ -260,7 +306,6 @@ function updateGridSpans() {
         1,
         Math.ceil((height + targetGap) / (rowUnit + rowGap)),
       );
-
       element.style.gridRowEnd = `span ${span}`;
     }
   });
@@ -274,9 +319,7 @@ function makeCard(work, insideGroup = false) {
     item.style.gridColumn = isWork15(work) ? "span 6" : "span 3";
   }
 
-  if (isWork15(work)) {
-    item.classList.add("featured-work");
-  }
+  if (isWork15(work)) item.classList.add("featured-work");
 
   const photo = document.createElement("div");
   photo.className = "photo";
@@ -310,17 +353,118 @@ function makeGroup(block) {
   groupElement.className = "gallery-group";
 
   const columns = columnCount();
-  const groupSpan = Math.min(members.length * 3, columns);
-  const innerColumns = Math.min(members.length, columns / 3);
-
-  groupElement.style.setProperty("--group-span", groupSpan);
-  groupElement.style.setProperty("--group-columns", innerColumns);
+  groupElement.style.setProperty(
+    "--group-span",
+    Math.min(members.length * 3, columns),
+  );
+  groupElement.style.setProperty(
+    "--group-columns",
+    Math.min(members.length, columns / 3),
+  );
 
   members.forEach((work) => {
     groupElement.append(makeCard(work, true));
   });
 
   return groupElement;
+}
+
+function setLoading(isLoading, message = "Пожалуйста, подождите — идёт загрузка…") {
+  loadingOverlay.hidden = !isLoading;
+  modalImage.classList.toggle("is-loading", isLoading);
+
+  const text = loadingOverlay.querySelector(".image-loading-text");
+  if (text) text.textContent = message;
+
+  zoomButtons.forEach((button) => {
+    button.disabled = isLoading || !imageReady;
+  });
+}
+
+function applyZoom() {
+  if (!imageReady || !modalImage.naturalWidth) return;
+
+  if (zoomScale === 0) {
+    modal.classList.remove("is-zoomed");
+    modalImage.style.width = "";
+    modalImage.style.height = "";
+    zoomReadout.textContent = "Вписать";
+    return;
+  }
+
+  modal.classList.add("is-zoomed");
+  modalImage.style.width = `${Math.round(modalImage.naturalWidth * zoomScale)}px`;
+  modalImage.style.height = `${Math.round(modalImage.naturalHeight * zoomScale)}px`;
+  zoomReadout.textContent = `${Math.round(zoomScale * 100)}%`;
+}
+
+function loadModalImage(src, alt) {
+  const requestId = ++imageRequestId;
+  imageReady = false;
+  setLoading(true);
+  modalImage.alt = alt;
+
+  let handled = false;
+
+  const finishLoad = async () => {
+    if (handled) return;
+    handled = true;
+
+    try {
+      if (modalImage.decode) await modalImage.decode();
+    } catch {
+      /* Некоторые браузеры могут отклонить decode при уже готовом изображении. */
+    }
+
+    if (requestId !== imageRequestId) return;
+
+    imageReady = true;
+    loadingOverlay.hidden = true;
+    modalImage.classList.remove("is-loading");
+    zoomButtons.forEach((button) => {
+      button.disabled = false;
+    });
+    applyZoom();
+  };
+
+  modalImage.onload = finishLoad;
+
+  modalImage.onerror = () => {
+    if (requestId !== imageRequestId) return;
+    imageReady = false;
+    setLoading(true, "Не удалось загрузить изображение.");
+    loadingOverlay.querySelector(".loading-track").hidden = true;
+  };
+
+  modalImage.src = src;
+
+  if (modalImage.complete && modalImage.naturalWidth) {
+    finishLoad();
+  }
+}
+
+function setZoom(nextScale) {
+  if (!imageReady) return;
+
+  zoomScale = nextScale;
+  modalViewport.scrollTop = 0;
+  modalViewport.scrollLeft = 0;
+  applyZoom();
+}
+
+function zoomIn() {
+  if (!imageReady) return;
+  setZoom(zoomScale === 0 ? 1 : Math.min(4, zoomScale * 1.25));
+}
+
+function zoomOut() {
+  if (!imageReady) return;
+
+  if (zoomScale <= 1) {
+    setZoom(0);
+  } else {
+    setZoom(Math.max(1, zoomScale / 1.25));
+  }
 }
 
 function setCompareState(state) {
@@ -337,37 +481,40 @@ function setCompareState(state) {
   const work = visibleWorks[currentIndex];
   if (!isWork15(work)) return;
 
-  modalImage.src =
-    state === "before"
-      ? "assets/img/originals/retouch/15_before.jpg"
-      : "assets/img/originals/retouch/15_after.jpg";
-
-  modalImage.alt =
+  loadModalImage(
+    lightboxPath(work, state),
     state === "before"
       ? "Работа 15 до ретуши"
-      : "Работа 15 после ретуши";
+      : "Работа 15 после ретуши",
+  );
 }
 
 function showModal() {
   const work = visibleWorks[currentIndex];
   if (!work) return;
 
+  zoomScale = 0;
+  modal.classList.remove("is-zoomed");
+
   if (isWork15(work)) {
     compareControls.hidden = false;
-    setCompareState("after");
+    compareState = "after";
+
+    compareControls
+      .querySelector('[data-compare="before"]')
+      .setAttribute("aria-pressed", "false");
+
+    compareControls
+      .querySelector('[data-compare="after"]')
+      .setAttribute("aria-pressed", "true");
+
+    loadModalImage(lightboxPath(work, "after"), "Работа 15 после ретуши");
     return;
   }
 
   compareControls.hidden = true;
-  modalImage.src = originalPath(work);
-  modalImage.alt = "Работа из портфолио";
+  loadModalImage(originalPath(work), "Работа из портфолио");
 }
-
-compareControls.querySelectorAll("button").forEach((button) => {
-  button.addEventListener("click", () => {
-    setCompareState(button.dataset.compare);
-  });
-});
 
 function draw(filter = "all") {
   currentFilter = filter;
@@ -383,10 +530,7 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
-
-      if (!work || (filter !== "all" && work.category !== filter)) {
-        continue;
-      }
+      if (!work || (filter !== "all" && work.category !== filter)) continue;
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -404,10 +548,7 @@ function draw(filter = "all") {
     });
 
     if (groupElement) grid.append(groupElement);
-
-    members.forEach((work) => {
-      used.add(key(work.category, work.id));
-    });
+    members.forEach((work) => used.add(key(work.category, work.id)));
   }
 
   visibleWorks.forEach((work) => {
@@ -417,6 +558,29 @@ function draw(filter = "all") {
 
   updateGridSpans();
 }
+
+/* Управление масштабом */
+lightboxToolbar
+  .querySelector('[data-zoom="in"]')
+  .addEventListener("click", zoomIn);
+
+lightboxToolbar
+  .querySelector('[data-zoom="out"]')
+  .addEventListener("click", zoomOut);
+
+lightboxToolbar
+  .querySelector('[data-zoom="native"]')
+  .addEventListener("click", () => setZoom(1));
+
+lightboxToolbar
+  .querySelector('[data-zoom="fit"]')
+  .addEventListener("click", () => setZoom(0));
+
+compareControls.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("click", () => {
+    setCompareState(button.dataset.compare);
+  });
+});
 
 // Фильтры
 document.querySelectorAll(".filter").forEach((button) => {
@@ -437,6 +601,7 @@ function openModal(index) {
 
 function closeModal() {
   modal.classList.remove("open");
+  modal.classList.remove("is-zoomed");
   document.body.style.overflow = "";
 }
 
@@ -529,7 +694,7 @@ document.querySelector("#emailLink").addEventListener("click", (event) => {
   window.location.href = link.href;
 });
 
-// Перестроение сетки при изменении ширины
+// Перестройка сетки при изменении ширины
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => draw(currentFilter), 150);
