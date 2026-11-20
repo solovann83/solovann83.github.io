@@ -49,7 +49,7 @@ const layoutPlans = {
   all: [
     one("retouch", 13),
     one("retouch", 10),
-    one("retouch", 8),
+    one("design", 36),
     one("retouch", 12),
     linked("design", [21, 22, 23]),
     one("retouch", 11),
@@ -65,7 +65,7 @@ const layoutPlans = {
     one("ai", 54),
     one("retouch", 16),
     one("ai", 46),
-    one("design", 36),
+    one("retouch", 8),
     one("ai", 55),
     one("design", 37),
     one("design", 39),
