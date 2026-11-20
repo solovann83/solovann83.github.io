@@ -5,20 +5,9 @@ const makeWorks = (category, start, end, extension = "jpg") =>
   });
 
 const aiOriginals = [
-  "42.png",
-  "43.jpg",
-  "44.jpg",
-  "45.png",
-  "46.png",
-  "47.png",
-  "48.jpg",
-  "49.png",
-  "50.png",
-  "51.jpg",
-  "52.png",
-  "53.jpg",
-  "54.jpg",
-  "55.png",
+  "42.png", "43.jpg", "44.jpg", "45.png", "46.png", "47.png",
+  "48.jpg", "49.png", "50.png", "51.jpg", "52.png", "53.jpg",
+  "54.jpg", "55.png",
 ];
 
 const works = [
@@ -45,7 +34,7 @@ const linked = (category, ids) => ({
   keys: ids.map((id) => key(category, id)),
 });
 
-/* Порядок из текущего script.js в GitHub сохранён */
+/* Порядок работ из актуального script.js в GitHub */
 const layoutPlans = {
   all: [
     one("retouch", 13),
@@ -165,7 +154,7 @@ const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
 
-/* Оборачиваем изображение, чтобы прокручивать увеличенный кадр */
+/* Прокручиваемая область изображения */
 const modalViewport = document.createElement("div");
 modalViewport.className = "modal-viewport";
 modalImage.classList.add("modal-image");
@@ -212,6 +201,7 @@ let compareState = "after";
 let zoomScale = 0;
 let imageRequestId = 0;
 let imageReady = false;
+let dragState = null;
 
 const isWork15 = (work) =>
   work?.category === "retouch" && work.id === "15";
@@ -302,7 +292,6 @@ function updateGridSpans() {
         1,
         Math.ceil((height + targetGap) / (rowUnit + rowGap)),
       );
-
       element.style.gridRowEnd = `span ${span}`;
     }
   });
@@ -434,7 +423,7 @@ function loadModalImage(src, alt) {
     try {
       if (modalImage.decode) await modalImage.decode();
     } catch {
-      /* Некоторые браузеры отклоняют decode уже загруженного изображения. */
+      /* Браузер может отклонить decode для уже загруженного изображения. */
     }
 
     if (requestId !== imageRequestId) return;
@@ -477,7 +466,7 @@ function setZoom(nextScale, clientX = null, clientY = null) {
   const contentX = modalViewport.scrollLeft + anchorX;
   const contentY = modalViewport.scrollTop + anchorY;
 
-  /* Ограничиваем масштаб натуральным размером изображения: максимум 100%. */
+  /* Максимум — реальные размеры изображения, то есть 100%. */
   zoomScale = nextScale === 0 ? 0 : Math.min(1, nextScale);
   applyZoom();
 
@@ -529,6 +518,7 @@ function showModal() {
 
   zoomScale = 0;
   modal.classList.remove("is-zoomed");
+  modalViewport.classList.remove("is-dragging");
   setZoomButtonState("fit");
 
   if (isWork15(work)) {
@@ -565,10 +555,7 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
-
-      if (!work || (filter !== "all" && work.category !== filter)) {
-        continue;
-      }
+      if (!work || (filter !== "all" && work.category !== filter)) continue;
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -606,7 +593,7 @@ lightboxToolbar
   .querySelector('[data-zoom="native"]')
   .addEventListener("click", () => setZoom(1));
 
-/* Колесо мыши изменяет масштаб только на десктопе */
+/* Колесо мыши масштабирует изображение на десктопе */
 modalViewport.addEventListener(
   "wheel",
   (event) => {
@@ -618,8 +605,6 @@ modalViewport.addEventListener(
     const fitScale = getFitScale();
     const baseScale = zoomScale === 0 ? fitScale : zoomScale;
     const factor = event.deltaY < 0 ? 1.15 : 1 / 1.15;
-
-    /* Нижняя граница — «Вписать», верхняя — реальный размер, 100%. */
     const nextScale = Math.min(1, Math.max(fitScale, baseScale * factor));
 
     if (nextScale <= fitScale * 1.01) {
@@ -630,6 +615,52 @@ modalViewport.addEventListener(
   },
   { passive: false },
 );
+
+/* Перетаскивание увеличенного изображения мышью */
+modalViewport.addEventListener("pointerdown", (event) => {
+  if (
+    !modal.classList.contains("is-zoomed") ||
+    event.pointerType === "touch" ||
+    event.button !== 0
+  ) {
+    return;
+  }
+
+  dragState = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    startScrollLeft: modalViewport.scrollLeft,
+    startScrollTop: modalViewport.scrollTop,
+  };
+
+  modalViewport.classList.add("is-dragging");
+  modalViewport.setPointerCapture(event.pointerId);
+  event.preventDefault();
+});
+
+modalViewport.addEventListener("pointermove", (event) => {
+  if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+  modalViewport.scrollLeft =
+    dragState.startScrollLeft - (event.clientX - dragState.startX);
+  modalViewport.scrollTop =
+    dragState.startScrollTop - (event.clientY - dragState.startY);
+});
+
+function stopImageDrag(event) {
+  if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+  dragState = null;
+  modalViewport.classList.remove("is-dragging");
+}
+
+modalViewport.addEventListener("pointerup", stopImageDrag);
+modalViewport.addEventListener("pointercancel", stopImageDrag);
+modalViewport.addEventListener("lostpointercapture", () => {
+  dragState = null;
+  modalViewport.classList.remove("is-dragging");
+});
 
 compareControls.querySelectorAll("button").forEach((button) => {
   button.addEventListener("click", () => {
@@ -657,6 +688,7 @@ function openModal(index) {
 function closeModal() {
   modal.classList.remove("open");
   modal.classList.remove("is-zoomed");
+  modalViewport.classList.remove("is-dragging");
   document.body.style.overflow = "";
 }
 
