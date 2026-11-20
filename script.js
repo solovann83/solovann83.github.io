@@ -47,12 +47,12 @@ const linked = (category, ids) => ({
 
 const layoutPlans = {
   all: [
-    one("retouch", 8),
+    one("retouch", 13),
     one("retouch", 10),
     one("retouch", 11),
     one("retouch", 12),
     linked("design", [21, 22, 23]),
-    one("retouch", 13),
+    one("retouch", 8),
     linked("design", [24, 25]),
     one("retouch", 14),
     one("ai", 45),
@@ -97,11 +97,11 @@ const layoutPlans = {
   ],
 
   retouch: [
-    one("retouch", 8),
+    one("retouch", 13),
     one("retouch", 10),
     one("retouch", 11),
     one("retouch", 12),
-    one("retouch", 13),
+    one("retouch", 8),
     one("retouch", 14),
     one("retouch", 16),
     one("retouch", 9),
@@ -213,17 +213,12 @@ function columnCount() {
   return 12;
 }
 
-function cardColumnSpan() {
-  return 3;
-}
-
 function updateGridSpans() {
   requestAnimationFrame(() => {
     const styles = getComputedStyle(grid);
     const rowUnit =
       parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
     const rowGap = parseFloat(styles.rowGap) || 12;
-
     const items = [...grid.children];
 
     items.forEach((element) => {
@@ -248,7 +243,7 @@ function makeCard(work, insideGroup = false) {
   item.className = insideGroup ? "item group-item" : "item grid-single";
 
   if (!insideGroup) {
-    item.style.gridColumn = `span ${cardColumnSpan()}`;
+    item.style.gridColumn = "span 3";
   }
 
   const photo = document.createElement("div");
@@ -259,7 +254,6 @@ function makeCard(work, insideGroup = false) {
   image.loading = "lazy";
   image.src = previewPath(work);
   image.alt = "Работа из портфолио";
-
   image.addEventListener("load", updateGridSpans, { once: true });
 
   photo.append(image);
@@ -284,13 +278,12 @@ function makeGroup(block) {
   groupElement.className = "gallery-group";
 
   const columns = columnCount();
-  const unitSpan = 3;
-  const groupSpan = Math.min(members.length * unitSpan, columns);
+  const groupSpan = Math.min(members.length * 3, columns);
 
   groupElement.style.setProperty("--group-span", groupSpan);
   groupElement.style.setProperty(
     "--group-columns",
-    Math.min(members.length, columns / unitSpan),
+    Math.min(members.length, columns / 3),
   );
 
   members.forEach((work) => {
@@ -314,7 +307,7 @@ function draw(filter = "all") {
   for (const block of plan) {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
-      if (!work || work.category !== filter && filter !== "all") continue;
+      if (!work || (filter !== "all" && work.category !== filter)) continue;
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -335,7 +328,6 @@ function draw(filter = "all") {
     members.forEach((work) => used.add(key(work.category, work.id)));
   }
 
-  // На случай будущего добавления работы, которой ещё нет в плане.
   visibleWorks.forEach((work) => {
     const workKey = key(work.category, work.id);
     if (!used.has(workKey)) grid.append(makeCard(work));
@@ -344,6 +336,7 @@ function draw(filter = "all") {
   updateGridSpans();
 }
 
+// Фильтры
 document.querySelectorAll(".filter").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelector(".filter.active")?.classList.remove("active");
@@ -462,7 +455,7 @@ document.querySelector("#emailLink").addEventListener("click", (event) => {
   window.location.href = link.href;
 });
 
-// Пересчёт размеров при загрузке изображений и изменении окна
+// Перестройка сетки при изменении ширины
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => draw(currentFilter), 150);
