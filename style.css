@@ -240,7 +240,6 @@ a {
   grid-column: span 3;
 }
 
-/* Работа 15 занимает ширину двух обычных карточек */
 .item.featured-work {
   grid-column: span 6;
 }
@@ -417,7 +416,7 @@ a {
   margin-top: 50px;
 }
 
-/* Лайтбокс и прокручиваемая область масштабирования */
+/* Лайтбокс и прокручиваемая область увеличения */
 .modal {
   position: fixed;
   inset: 0;
@@ -479,7 +478,7 @@ a {
   max-height: none;
 }
 
-/* Кнопки масштаба и сравнения */
+/* Панель масштаба и сравнения */
 .lightbox-toolbar {
   position: absolute;
   z-index: 13;
@@ -510,9 +509,8 @@ a {
 }
 
 .lightbox-toolbar button {
-  min-width: 42px;
   min-height: 40px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -531,13 +529,6 @@ a {
 .lightbox-toolbar button:disabled {
   opacity: 0.45;
   cursor: default;
-}
-
-.zoom-readout {
-  min-width: 54px;
-  color: #f4f1ec;
-  font: 11px Montserrat-Regular, Arial, sans-serif;
-  text-align: center;
 }
 
 /* Индикатор загрузки */
@@ -638,9 +629,7 @@ a {
   border-radius: 50%;
   background: var(--ink);
   color: var(--bg);
-  font:
-    24px/1 Arial,
-    sans-serif;
+  font: 24px/1 Arial, sans-serif;
   cursor: pointer;
   opacity: 0;
   visibility: hidden;
@@ -901,9 +890,7 @@ a {
     border-radius: 50%;
     background: transparent;
     color: var(--ink);
-    font:
-      30px/1 Arial,
-      sans-serif;
+    font: 30px/1 Arial, sans-serif;
     cursor: pointer;
   }
 
@@ -970,15 +957,9 @@ a {
   }
 
   .lightbox-toolbar button {
-    min-width: 34px;
     min-height: 38px;
-    padding: 8px;
+    padding: 8px 11px;
     font-size: 11px;
-  }
-
-  .zoom-readout {
-    min-width: 42px;
-    font-size: 10px;
   }
 
   .image-loading-card {
