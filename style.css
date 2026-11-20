@@ -416,7 +416,7 @@ a {
   margin-top: 50px;
 }
 
-/* Лайтбокс и прокручиваемая область */
+/* Лайтбокс */
 .modal {
   position: fixed;
   inset: 0;
@@ -467,8 +467,8 @@ a {
 .modal.is-zoomed .modal-viewport {
   width: 100vw;
   height: 100vh;
-  align-items: flex-start;
-  justify-content: flex-start;
+  align-items: safe center;
+  justify-content: safe center;
   max-width: none;
   max-height: none;
 }
@@ -485,6 +485,7 @@ a {
   cursor: grabbing;
 }
 
+/* Панель масштаба и сравнения */
 .lightbox-toolbar {
   position: absolute;
   z-index: 13;
@@ -537,7 +538,7 @@ a {
   cursor: default;
 }
 
-/* Индикатор загрузки фиксирован относительно экрана */
+/* Индикатор загрузки закреплён по центру экрана */
 .image-loading {
   position: fixed;
   z-index: 12;
@@ -589,6 +590,7 @@ a {
   from {
     transform: translateX(-120%);
   }
+
   to {
     transform: translateX(320%);
   }
@@ -624,6 +626,7 @@ a {
   user-select: none;
 }
 
+/* Кнопка «Наверх» */
 .to-top {
   position: fixed;
   z-index: 8;
