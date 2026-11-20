@@ -5,6 +5,8 @@
   --line: #d8d3ca;
   --accent: #b35c43;
   --card: #ebe7df;
+  --gallery-gap: 12px;
+  --gallery-row-unit: 8px;
 }
 
 * {
@@ -67,7 +69,6 @@ a {
   color: var(--accent);
 }
 
-/* Полноэкранное мобильное меню */
 .menu-toggle {
   display: none;
 }
@@ -208,41 +209,41 @@ a {
   color: white;
 }
 
-/* Галерея: четыре базовые ячейки, связки занимают 2 или 3 ячейки */
+/* Плотная мозаика: 4 карточки в ширину на десктопе */
 .grid {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.gallery-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: var(--gallery-row-unit);
+  grid-auto-flow: dense;
+  gap: var(--gallery-gap);
   align-items: start;
 }
 
-.item {
-  grid-column: span 1;
-  display: block;
-  width: 100%;
+.item,
+.gallery-group {
   min-width: 0;
+  grid-row-end: span 1;
+}
+
+.item {
+  grid-column: span 3;
+  display: block;
   margin: 0;
   cursor: pointer;
 }
 
 .gallery-group {
-  grid-column: span var(--span);
-  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(var(--member-count), minmax(0, 1fr));
-  gap: 18px;
+  grid-column: span var(--group-span, 6);
+  grid-template-columns: repeat(var(--group-columns, 2), minmax(0, 1fr));
+  gap: var(--gallery-gap);
 }
 
 .photo {
-  background: var(--card);
+  width: 100%;
   overflow: hidden;
   position: relative;
+  background: var(--card);
 }
 
 .photo img {
@@ -446,7 +447,6 @@ a {
   user-select: none;
 }
 
-/* Кнопка «Наверх» */
 .to-top {
   position: fixed;
   z-index: 8;
@@ -485,6 +485,11 @@ a {
 }
 
 @media (max-width: 760px) {
+  :root {
+    --gallery-gap: 10px;
+    --gallery-row-unit: 7px;
+  }
+
   .wrap {
     width: calc(100% - 36px);
   }
@@ -542,19 +547,17 @@ a {
     white-space: nowrap;
   }
 
-  .gallery-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+  .grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .item {
+    grid-column: span 3;
   }
 
   .gallery-group {
-    grid-column: span 2;
+    grid-column: span 6;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .grid {
-    gap: 12px;
   }
 
   .section {
@@ -746,17 +749,26 @@ a {
 }
 
 @media (max-width: 430px) {
+  :root {
+    --gallery-gap: 10px;
+    --gallery-row-unit: 6px;
+  }
+
   .hero-aside {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .gallery-row {
-    grid-template-columns: 1fr;
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .item {
+    grid-column: span 3;
   }
 
   .gallery-group {
-    grid-column: span 1;
+    grid-column: span 3;
     grid-template-columns: 1fr;
   }
 
