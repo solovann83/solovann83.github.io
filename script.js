@@ -188,7 +188,7 @@ const lightboxToolbar = document.createElement("div");
 lightboxToolbar.className = "lightbox-toolbar";
 lightboxToolbar.innerHTML = `
   <div class="zoom-controls" role="group" aria-label="Масштаб изображения">
-    <button type="button" data-zoom="fit" aria-pressed="true">Вписать</button>
+    <button type="button" data-zoom="fit" aria-pressed="true">Авто</button>
     <button type="button" data-zoom="native" aria-pressed="false">100%</button>
   </div>
   <div class="compare-controls" role="group" aria-label="Сравнение до и после" hidden>
