@@ -538,7 +538,7 @@ a {
   cursor: default;
 }
 
-/* Индикатор загрузки закреплён по центру экрана */
+/* Индикатор загрузки */
 .image-loading {
   position: fixed;
   z-index: 12;
@@ -623,7 +623,8 @@ a {
 }
 
 .email-text {
-  user-select: none;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Кнопка «Наверх» */
