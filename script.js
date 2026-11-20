@@ -32,193 +32,330 @@ const works = [
   })),
 ];
 
-const workKey = (category, id) =>
+const key = (category, id) =>
   `${category}-${String(id).padStart(2, "0")}`;
 
-const single = (category, id) => ({
+const one = (category, id) => ({
   type: "single",
-  key: workKey(category, id),
+  key: key(category, id),
 });
 
-const group = (category, ids) => ({
+const linked = (category, ids) => ({
   type: "group",
-  keys: ids.map((id) => workKey(category, id)),
+  keys: ids.map((id) => key(category, id)),
 });
 
 const layoutPlans = {
   all: [
-    [single("retouch", 8), single("retouch", 10), single("retouch", 11), single("retouch", 12)],
-    [group("design", [21, 22, 23]), single("retouch", 13)],
-    [group("design", [24, 25]), single("retouch", 14), single("ai", 45)],
-    [group("design", [26, 27, 28]), single("design", 38)],
-    [group("design", [29, 30, 31]), single("design", 32)],
-    [group("design", [34, 35]), single("design", 33), single("ai", 54)],
-    [single("retouch", 16), single("ai", 46), single("design", 36), single("ai", 55)],
-    [single("design", 37), single("design", 39), single("design", 40), single("design", 41)],
-    [single("retouch", 9), single("retouch", 15), single("3d", 2), single("3d", 4)],
-    [single("retouch", 17), single("retouch", 18), single("retouch", 19), single("retouch", 20)],
-    [single("3d", 1), single("3d", 3), single("3d", 5), single("3d", 7)],
-    [single("3d", 6), single("ai", 42), single("ai", 43), single("ai", 44)],
-    [single("ai", 47), single("ai", 48), single("ai", 49), single("ai", 52)],
-    [single("ai", 50), single("ai", 51), single("ai", 53)],
+    one("retouch", 8),
+    one("retouch", 10),
+    one("retouch", 11),
+    one("retouch", 12),
+    linked("design", [21, 22, 23]),
+    one("retouch", 13),
+    linked("design", [24, 25]),
+    one("retouch", 14),
+    one("ai", 45),
+    linked("design", [26, 27, 28]),
+    one("design", 38),
+    linked("design", [29, 30, 31]),
+    one("design", 32),
+    linked("design", [34, 35]),
+    one("design", 33),
+    one("ai", 54),
+    one("retouch", 16),
+    one("ai", 46),
+    one("design", 36),
+    one("ai", 55),
+    one("design", 37),
+    one("design", 39),
+    one("design", 40),
+    one("design", 41),
+    one("retouch", 9),
+    one("retouch", 15),
+    one("3d", 2),
+    one("3d", 4),
+    one("retouch", 17),
+    one("retouch", 18),
+    one("retouch", 19),
+    one("retouch", 20),
+    one("3d", 1),
+    one("3d", 3),
+    one("3d", 5),
+    one("3d", 7),
+    one("3d", 6),
+    one("ai", 42),
+    one("ai", 43),
+    one("ai", 44),
+    one("ai", 47),
+    one("ai", 48),
+    one("ai", 49),
+    one("ai", 52),
+    one("ai", 50),
+    one("ai", 51),
+    one("ai", 53),
   ],
 
   retouch: [
-    [single("retouch", 8), single("retouch", 10), single("retouch", 11), single("retouch", 12)],
-    [single("retouch", 13), single("retouch", 14), single("retouch", 16), single("retouch", 9)],
-    [single("retouch", 15), single("retouch", 17), single("retouch", 18), single("retouch", 19)],
-    [single("retouch", 20)],
+    one("retouch", 8),
+    one("retouch", 10),
+    one("retouch", 11),
+    one("retouch", 12),
+    one("retouch", 13),
+    one("retouch", 14),
+    one("retouch", 16),
+    one("retouch", 9),
+    one("retouch", 15),
+    one("retouch", 17),
+    one("retouch", 18),
+    one("retouch", 19),
+    one("retouch", 20),
   ],
 
   design: [
-    [group("design", [21, 22, 23]), single("design", 32)],
-    [group("design", [24, 25]), single("design", 33), single("design", 36)],
-    [group("design", [26, 27, 28]), single("design", 37)],
-    [group("design", [29, 30, 31]), single("design", 38)],
-    [group("design", [34, 35]), single("design", 39), single("design", 40)],
-    [single("design", 41)],
+    linked("design", [21, 22, 23]),
+    one("design", 32),
+    linked("design", [24, 25]),
+    one("design", 33),
+    one("design", 36),
+    linked("design", [26, 27, 28]),
+    one("design", 37),
+    linked("design", [29, 30, 31]),
+    one("design", 38),
+    linked("design", [34, 35]),
+    one("design", 39),
+    one("design", 40),
+    one("design", 41),
   ],
 
   "3d": [
-    [single("3d", 1), single("3d", 2), single("3d", 3), single("3d", 4)],
-    [single("3d", 5), single("3d", 6), single("3d", 7)],
+    one("3d", 1),
+    one("3d", 2),
+    one("3d", 3),
+    one("3d", 4),
+    one("3d", 5),
+    one("3d", 6),
+    one("3d", 7),
   ],
 
   ai: [
-    [single("ai", 42), single("ai", 43), single("ai", 44), single("ai", 46)],
-    [single("ai", 47), single("ai", 48), single("ai", 49), single("ai", 52)],
-    [single("ai", 45), single("ai", 54), single("ai", 55), single("ai", 50)],
-    [single("ai", 51), single("ai", 53)],
+    one("ai", 42),
+    one("ai", 43),
+    one("ai", 44),
+    one("ai", 46),
+    one("ai", 47),
+    one("ai", 48),
+    one("ai", 49),
+    one("ai", 52),
+    one("ai", 45),
+    one("ai", 54),
+    one("ai", 55),
+    one("ai", 50),
+    one("ai", 51),
+    one("ai", 53),
   ],
 };
 
-const workByKey = new Map(works.map((work) => [
-  workKey(work.category, work.id),
-  work,
-]));
-
-const previewPath = (work) =>
-  `assets/img/previews/${work.category}/preview-${work.id}.jpg`;
-
-const originalPath = (work) =>
-  `assets/img/originals/${work.category}/${work.original}`;
+const workByKey = new Map(
+  works.map((work) => [key(work.category, work.id), work]),
+);
 
 const grid = document.querySelector("#gallery");
 const modal = document.querySelector("#modal");
 const modalImage = modal.querySelector("img");
-let visible = [];
-let current = 0;
 
-function getColumnCount() {
+let visibleWorks = [];
+let currentIndex = 0;
+let resizeObserver;
+
+function previewPath(work) {
+  return `assets/img/previews/${work.category}/preview-${work.id}.jpg`;
+}
+
+function originalPath(work) {
+  return `assets/img/originals/${work.category}/${work.original}`;
+}
+
+function aspectRatio(work) {
+  const id = Number(work.id);
+
+  if (work.category === "retouch") {
+    if (id === 11) return 450 / 800;
+    if ([9, 17, 18].includes(id)) return 800 / 600;
+    if ([15, 19, 20].includes(id)) return 800 / 450;
+    return 600 / 800;
+  }
+
+  if (work.category === "design") {
+    if ([37, 39, 40].includes(id)) return 800 / 600;
+    if (id === 41) return 800 / 450;
+    return 600 / 800;
+  }
+
+  if (work.category === "3d") {
+    if ([2, 4].includes(id)) return 800 / 450;
+    return 800 / 600;
+  }
+
+  if (work.category === "ai") {
+    if ([45, 54, 55].includes(id)) return 600 / 800;
+    if ([47, 48, 49, 52].includes(id)) return 800 / 450;
+    return 800 / 600;
+  }
+
+  return 4 / 3;
+}
+
+function columnsForViewport() {
   if (window.matchMedia("(max-width: 430px)").matches) return 1;
   if (window.matchMedia("(max-width: 760px)").matches) return 2;
   return 4;
 }
 
-function makeRows(plan, columnCount) {
-  const rows = [];
+function setSpan(element, columns) {
+  element.style.gridRowEnd = "span 1";
 
-  for (const plannedRow of plan) {
-    let row = [];
-    let usedColumns = 0;
-
-    const flush = () => {
-      if (row.length) rows.push(row);
-      row = [];
-      usedColumns = 0;
-    };
-
-    for (const block of plannedRow) {
-      const span = block.type === "group" ? block.keys.length : 1;
-
-      if (span > columnCount) {
-        flush();
-        rows.push([block]);
-        continue;
-      }
-
-      if (usedColumns + span > columnCount) flush();
-
-      row.push(block);
-      usedColumns += span;
-    }
-
-    flush();
-  }
-
-  return rows;
+  requestAnimationFrame(() => {
+    const height = element.getBoundingClientRect().height;
+    const styles = getComputedStyle(grid);
+    const rowUnit = parseFloat(styles.getPropertyValue("--gallery-row-unit")) || 8;
+    const gap = parseFloat(styles.rowGap) || 12;
+    const span = Math.max(1, Math.ceil((height + gap) / (rowUnit + gap)));
+    element.style.gridRowEnd = `span ${span}`;
+  });
 }
 
-function makeCard(work) {
-  const card = document.createElement("article");
-  card.className = "item";
+function createCard(work) {
+  const item = document.createElement("article");
+  item.className = "item";
+  item.style.gridColumn = `span ${columnsForViewport() === 4 ? 3 : columnsForViewport() === 2 ? 3 : 3}`;
+
+  const photo = document.createElement("div");
+  photo.className = "photo";
+  photo.style.aspectRatio = String(aspectRatio(work));
 
   const image = document.createElement("img");
   image.loading = "lazy";
   image.src = previewPath(work);
   image.alt = "Работа из портфолио";
+  image.addEventListener("load", () => setSpan(item), { once: true });
 
-  const photo = document.createElement("div");
-  photo.className = "photo";
   photo.append(image);
-  card.append(photo);
+  item.append(photo);
 
-  card.addEventListener("click", () => {
-    const index = visible.indexOf(work);
-    if (index !== -1) openModal(index);
+  item.addEventListener("click", () => {
+    const index = visibleWorks.indexOf(work);
+    if (index >= 0) openModal(index);
   });
 
-  return card;
+  return item;
 }
 
-function makeBlock(block) {
-  if (block.type === "single") {
-    const work = workByKey.get(block.key);
-    if (!work) return null;
-
-    const card = makeCard(work);
-    card.classList.add("grid-single");
-    return card;
-  }
-
+function createGroup(block, viewportColumns) {
   const members = block.keys
-    .map((key) => workByKey.get(key))
+    .map((memberKey) => workByKey.get(memberKey))
     .filter(Boolean);
 
   if (!members.length) return null;
 
-  const wrapper = document.createElement("div");
-  wrapper.className = "gallery-group";
-  wrapper.style.setProperty("--member-count", members.length);
-  wrapper.style.setProperty("--span", members.length);
+  const groupElement = document.createElement("div");
+  groupElement.className = "gallery-group";
 
-  members.forEach((work) => wrapper.append(makeCard(work)));
-  return wrapper;
+  const columns = Math.min(members.length, viewportColumns);
+  groupElement.style.setProperty("--group-columns", columns);
+
+  const baseSpan = viewportColumns === 4 ? 3 : viewportColumns === 2 ? 3 : 3;
+  const groupSpan = Math.min(members.length * baseSpan, viewportColumns * 3);
+  groupElement.style.setProperty("--group-span", groupSpan);
+
+  members.forEach((work) => {
+    const card = createCard(work);
+    groupElement.append(card);
+  });
+
+  groupElement.addEventListener("animationend", () => setSpan(groupElement));
+  requestAnimationFrame(() => setSpan(groupElement));
+
+  return groupElement;
+}
+
+function packItems(blocks, viewportColumns) {
+  const packedRows = [];
+  let row = [];
+  let usedUnits = 0;
+
+  const capacity = viewportColumns;
+
+  function flush() {
+    if (row.length) packedRows.push(row);
+    row = [];
+    usedUnits = 0;
+  }
+
+  for (const block of blocks) {
+    if (block.type === "group") {
+      const units = block.keys.length;
+
+      if (units > capacity) {
+        flush();
+        packedRows.push([block]);
+        continue;
+      }
+
+      if (usedUnits + units > capacity) flush();
+
+      row.push(block);
+      usedUnits += units;
+      continue;
+    }
+
+    if (usedUnits + 1 > capacity) flush();
+
+    row.push(block);
+    usedUnits += 1;
+  }
+
+  flush();
+  return packedRows;
 }
 
 function draw(filter = "all") {
+  if (resizeObserver) resizeObserver.disconnect();
   grid.replaceChildren();
 
-  visible = works.filter(
+  visibleWorks = works.filter(
     (work) => filter === "all" || work.category === filter,
   );
 
-  const plan = layoutPlans[filter] || layoutPlans.all;
-  const rows = makeRows(plan, getColumnCount());
+  const blocks = layoutPlans[filter] || layoutPlans.all;
+  const viewportColumns = columnsForViewport();
+  const rows = packItems(blocks, viewportColumns);
 
-  for (const rowBlocks of rows) {
+  rows.forEach((blocksInRow) => {
     const row = document.createElement("div");
     row.className = "gallery-row";
+    row.style.display = "contents";
 
-    for (const block of rowBlocks) {
-      const element = makeBlock(block);
-      if (element) row.append(element);
-    }
+    blocksInRow.forEach((block) => {
+      if (block.type === "single") {
+        const work = workByKey.get(block.key);
+        if (work) row.append(createCard(work));
+      } else {
+        const groupElement = createGroup(block, viewportColumns);
+        if (groupElement) row.append(groupElement);
+      }
+    });
 
     grid.append(row);
-  }
+  });
+
+  requestAnimationFrame(() => {
+    grid.querySelectorAll(":scope > .gallery-row > .item, :scope > .gallery-row > .gallery-group")
+      .forEach((element) => setSpan(element));
+  });
 }
 
+// Фильтры
 document.querySelectorAll(".filter").forEach((button) => {
   button.addEventListener("click", () => {
     document.querySelector(".filter.active")?.classList.remove("active");
@@ -227,9 +364,9 @@ document.querySelectorAll(".filter").forEach((button) => {
   });
 });
 
-// Увеличенный просмотр
+// Лайтбокс
 function showModal() {
-  const work = visible[current];
+  const work = visibleWorks[currentIndex];
   if (!work) return;
 
   modalImage.src = originalPath(work);
@@ -237,7 +374,7 @@ function showModal() {
 }
 
 function openModal(index) {
-  current = index;
+  currentIndex = index;
   showModal();
   modal.classList.add("open");
   document.body.style.overflow = "hidden";
@@ -249,14 +386,16 @@ function closeModal() {
 }
 
 function step(direction) {
-  if (!visible.length) return;
-  current = (current + direction + visible.length) % visible.length;
+  if (!visibleWorks.length) return;
+  currentIndex =
+    (currentIndex + direction + visibleWorks.length) % visibleWorks.length;
   showModal();
 }
 
 modal.querySelector(".close").addEventListener("click", closeModal);
 modal.querySelector(".prev").addEventListener("click", () => step(-1));
 modal.querySelector(".next").addEventListener("click", () => step(1));
+
 modal.addEventListener("click", (event) => {
   if (event.target === modal) closeModal();
 });
@@ -329,15 +468,16 @@ document.querySelector("#emailLink").addEventListener("click", (event) => {
   window.location.href = link.href;
 });
 
-// Пересчитать число колонок при изменении ширины окна
+// Перестроение плиток при изменении ширины окна
 let resizeTimer;
+
 window.addEventListener("resize", () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     const activeFilter =
       document.querySelector(".filter.active")?.dataset.filter || "all";
     draw(activeFilter);
-  }, 120);
+  }, 150);
 });
 
 draw();
