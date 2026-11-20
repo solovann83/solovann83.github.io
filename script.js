@@ -61,7 +61,7 @@ const layoutPlans = {
     linked("design", [29, 30, 31]),
     one("design", 32),
     linked("design", [34, 35]),
-    one("retouch", 08),
+    one("retouch", 8),
     one("ai", 54),
     one("retouch", 16),
     one("design", 37),
@@ -102,7 +102,7 @@ const layoutPlans = {
     one("retouch", 10),
     one("retouch", 12),
     one("retouch", 11),
-    one("retouch", 08),
+    one("retouch", 8),
     one("retouch", 16),
     one("retouch", 9),
     one("retouch", 15),
@@ -168,6 +168,21 @@ let visibleWorks = [];
 let currentIndex = 0;
 let currentFilter = "all";
 let resizeTimer;
+let compareState = "after";
+
+const isWork15 = (work) =>
+  work?.category === "retouch" && work.id === "15";
+
+const compareControls = document.createElement("div");
+compareControls.className = "compare-controls";
+compareControls.setAttribute("role", "group");
+compareControls.setAttribute("aria-label", "Сравнение ретуши до и после");
+compareControls.hidden = true;
+compareControls.innerHTML = `
+  <button type="button" data-compare="before" aria-pressed="false">До</button>
+  <button type="button" data-compare="after" aria-pressed="true">После</button>
+`;
+modal.append(compareControls);
 
 function previewPath(work) {
   return `assets/img/previews/${work.category}/preview-${work.id}.jpg`;
@@ -220,7 +235,9 @@ function getContentHeight(element) {
 
     return Math.max(
       0,
-      ...photos.map((photo) => photo.getBoundingClientRect().bottom - groupRect.top),
+      ...photos.map(
+        (photo) => photo.getBoundingClientRect().bottom - groupRect.top,
+      ),
     );
   }
 
@@ -254,7 +271,11 @@ function makeCard(work, insideGroup = false) {
   item.className = insideGroup ? "item group-item" : "item grid-single";
 
   if (!insideGroup) {
-    item.style.gridColumn = "span 3";
+    item.style.gridColumn = isWork15(work) ? "span 6" : "span 3";
+  }
+
+  if (isWork15(work)) {
+    item.classList.add("featured-work");
   }
 
   const photo = document.createElement("div");
@@ -302,6 +323,52 @@ function makeGroup(block) {
   return groupElement;
 }
 
+function setCompareState(state) {
+  compareState = state;
+
+  compareControls
+    .querySelector('[data-compare="before"]')
+    .setAttribute("aria-pressed", String(state === "before"));
+
+  compareControls
+    .querySelector('[data-compare="after"]')
+    .setAttribute("aria-pressed", String(state === "after"));
+
+  const work = visibleWorks[currentIndex];
+  if (!isWork15(work)) return;
+
+  modalImage.src =
+    state === "before"
+      ? "assets/img/originals/retouch/15_before.jpg"
+      : "assets/img/originals/retouch/15_after.jpg";
+
+  modalImage.alt =
+    state === "before"
+      ? "Работа 15 до ретуши"
+      : "Работа 15 после ретуши";
+}
+
+function showModal() {
+  const work = visibleWorks[currentIndex];
+  if (!work) return;
+
+  if (isWork15(work)) {
+    compareControls.hidden = false;
+    setCompareState("after");
+    return;
+  }
+
+  compareControls.hidden = true;
+  modalImage.src = originalPath(work);
+  modalImage.alt = "Работа из портфолио";
+}
+
+compareControls.querySelectorAll("button").forEach((button) => {
+  button.addEventListener("click", () => {
+    setCompareState(button.dataset.compare);
+  });
+});
+
 function draw(filter = "all") {
   currentFilter = filter;
   grid.replaceChildren();
@@ -317,7 +384,9 @@ function draw(filter = "all") {
     if (block.type === "single") {
       const work = workByKey.get(block.key);
 
-      if (!work || (filter !== "all" && work.category !== filter)) continue;
+      if (!work || (filter !== "all" && work.category !== filter)) {
+        continue;
+      }
 
       grid.append(makeCard(work));
       used.add(block.key);
@@ -359,14 +428,6 @@ document.querySelectorAll(".filter").forEach((button) => {
 });
 
 // Лайтбокс
-function showModal() {
-  const work = visibleWorks[currentIndex];
-  if (!work) return;
-
-  modalImage.src = originalPath(work);
-  modalImage.alt = "Работа из портфолио";
-}
-
 function openModal(index) {
   currentIndex = index;
   showModal();
@@ -445,6 +506,16 @@ toTop.addEventListener("click", () => {
 });
 
 updateToTop();
+
+document.addEventListener("keydown", (event) => {
+  if (modal.classList.contains("open")) {
+    if (event.key === "Escape") closeModal();
+    if (event.key === "ArrowRight") step(1);
+    if (event.key === "ArrowLeft") step(-1);
+  }
+
+  if (event.key === "Escape") closeMenu();
+});
 
 // Почта
 const mail = ["solovann83", "yandex.ru"].join("@");
