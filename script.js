@@ -105,11 +105,11 @@ const layoutPlans = {
     one("retouch", 11),
     one("retouch", 8),
     one("retouch", 16),
-    one("retouch", 9),
+    one("retouch", 19),
     one("retouch", 15),
     one("retouch", 17),
     one("retouch", 18),
-    one("retouch", 19),
+    one("retouch", 9),
     one("retouch", 20),
   ],
 
